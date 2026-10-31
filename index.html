@@ -25,8 +25,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Confirmação de Presença · DAJ</title>
 <meta name="description" content="Confirme sua presença no evento DAJ Empreendimentos.">
+<meta property="og:site_name" content="Confirmação DAJ">
+<meta property="og:type" content="website">
 <meta property="og:title" content="Confirmação de Presença · DAJ Empreendimentos">
-<meta property="og:description" content="Confirme sua presença em poucos segundos.">
+<meta property="og:description" content="Toque para confirmar sua presença no evento DAJ.">
+<meta property="og:image" content="https://joaoaleximoveisap-web.github.io/code-clarity-engine/public/og-daj.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://joaoaleximoveisap-web.github.io/code-clarity-engine/public/og-daj.png">
 <meta name="theme-color" content="#D5D4C7">
 <link rel="icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -268,7 +275,9 @@ const digits = (v) => v.replace(/\D/g, '');
 const eventTime = (e) => fmtTime(new Date(e.starts_at)) + (e.ends_at ? ' às ' + fmtTime(new Date(e.ends_at)) : '');
 
 // O código do evento vem em ?e=codigo (ou /evento/codigo, se o servidor encaminhar).
-const slug = (new URLSearchParams(location.search).get('e') || (location.pathname.match(/\/evento\/([a-z0-9-]+)/) || [])[1] || '').toLowerCase();
+const OFFICIAL_URL = 'https://confirmacaodeeventos.lovable.app';
+const pathSlug = location.pathname.replace(/^\/code-clarity-engine/, '').replace(/^\/+|\/+$/g, '').replace(/^evento\//, '').replace(/^index\.html$/, '');
+const slug = (new URLSearchParams(location.search).get('e') || pathSlug).toLowerCase();
 
 const SECTIONS = ['loading', 'form', 'done', 'closed', 'login', 'panel'];
 function show(which) { for (const id of SECTIONS) $(id).hidden = id !== which; }
@@ -456,8 +465,8 @@ function readCode() { try { return localStorage.getItem(ADMIN_KEY) || ''; } catc
 function saveCode(v) { try { v ? localStorage.setItem(ADMIN_KEY, v) : localStorage.removeItem(ADMIN_KEY); } catch {} }
 const rpc = (fn, args = {}) => rpcCall(fn, { p_code: adminCode, ...args });
 
-// Link sempre no domínio em que o painel está publicado.
-const eventLink = (ev) => `${location.origin}${location.pathname}?e=${encodeURIComponent(ev.slug)}`;
+// Link sempre no endereço oficial, mesmo criando o evento de outro lugar.
+const eventLink = (ev) => `${OFFICIAL_URL}/${ev.slug}`;
 const toDateInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const toTimeInput = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
@@ -469,10 +478,14 @@ function statusOf(e) {
   return ['aberto', 'Aberto'];
 }
 
-function makeSlug(title) {
-  const base = title.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60).replace(/-+$/g, '');
-  return `${base || 'evento'}-${Math.random().toString(36).slice(2, 6)}`;
+function makeSlug(title, startsAt) {
+  const base = title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50).replace(/-+$/g, '') || 'evento';
+  let slug = `${base}-${pad(startsAt.getDate())}-${pad(startsAt.getMonth() + 1)}`;
+  const taken = new Set(adminEvents.map((x) => x.slug));
+  if (taken.has(slug)) slug += `-${pad(startsAt.getHours())}h`;
+  while (taken.has(slug)) slug = slug.replace(/-[a-z0-9]{3}$/, '') + '-' + Math.random().toString(36).slice(2, 5);
+  return slug;
 }
 
 function el(tag, props = {}, ...kids) {
@@ -686,7 +699,7 @@ async function saveEvent(ev) {
   const cap = parseInt($('fCap').value, 10);
   const status = $('fStatus').value;
   const prev = adminEvents.find((x) => x.id === editingId);
-  const slugValue = prev ? prev.slug : makeSlug(title);
+  const slugValue = prev ? prev.slug : makeSlug(title, startsAt);
   $('saveBtn').disabled = true;
   try {
     await rpc('presence_admin_save_event', {
