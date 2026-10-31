@@ -7,6 +7,24 @@
 // para nenhuma atualização depender de publicar de novo no Lovable. Se o GitHub falhar, usa esta cópia.
 window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__dajInstall = e; });
 (function () {
+  var gh = 'https://joaoaleximoveisap-web.github.io/code-clarity-engine/public/';
+  var manifest = {
+    name: 'Eventos DAJ', short_name: 'Eventos DAJ', lang: 'pt-BR',
+    description: 'Crie eventos, envie o link e acompanhe as confirmações de presença.',
+    start_url: location.origin + '/', scope: location.origin + '/', display: 'standalone', orientation: 'any',
+    background_color: '#F5F4EE', theme_color: '#D5D4C7',
+    icons: [
+      { src: gh + 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: gh + 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: gh + 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+    ]
+  };
+  var link = document.createElement('link');
+  link.rel = 'manifest';
+  link.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
+  document.head.appendChild(link);
+})();
+(function () {
   if (window.__dajLatest || !/\.lovable\.app$/.test(location.hostname)) return;
   window.__dajSwap = true;
   document.documentElement.style.visibility = 'hidden';
@@ -36,9 +54,8 @@ window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault()
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://joaoaleximoveisap-web.github.io/code-clarity-engine/public/og-daj.png">
 <meta name="theme-color" content="#D5D4C7">
-<link rel="icon" href="/favicon.png">
-<link rel="manifest" href="/manifest.webmanifest">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="https://joaoaleximoveisap-web.github.io/code-clarity-engine/public/favicon.png">
+<link rel="apple-touch-icon" href="https://joaoaleximoveisap-web.github.io/code-clarity-engine/public/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Eventos DAJ">
