@@ -196,10 +196,10 @@ td.x button:hover{color:var(--flag)}
     <p class="loading" id="loading">Carregando…</p>
 
     <form id="form" novalidate hidden>
-      <label><span>Nome da imobiliária / empresa</span><input id="company" autocomplete="organization" autocapitalize="words" enterkeyhint="next" maxlength="160" placeholder="Ex.: Imobiliária Palhano" required></label>
-      <label><span>Seu nome</span><input id="name" autocomplete="name" autocapitalize="words" enterkeyhint="next" maxlength="160" placeholder="Nome e sobrenome" required></label>
-      <label><span>Sua função</span><input id="job" autocomplete="organization-title" autocapitalize="sentences" enterkeyhint="next" maxlength="120" placeholder="Ex.: Corretor, Diretor, Gerente" required></label>
-      <label><span>Telefone (WhatsApp)</span><input id="phone" type="tel" inputmode="tel" autocomplete="tel-national" enterkeyhint="send" placeholder="(43) 99999-9999" maxlength="16" required></label>
+      <label><span>Nome da imobiliária / empresa</span><input id="company" autocomplete="organization" autocapitalize="words" enterkeyhint="next" maxlength="160" required></label>
+      <label><span>Seu nome</span><input id="name" autocomplete="name" autocapitalize="words" enterkeyhint="next" maxlength="160" required></label>
+      <label><span>Sua função</span><input id="job" autocomplete="organization-title" autocapitalize="sentences" enterkeyhint="next" maxlength="120" required></label>
+      <label><span>Telefone (WhatsApp)</span><input id="phone" type="tel" inputmode="tel" autocomplete="tel-national" enterkeyhint="send" maxlength="16" required></label>
       <div class="hp" aria-hidden="true"><label>Site<input id="website" tabindex="-1" autocomplete="off"></label></div>
       <p class="err" id="err" role="alert" hidden></p>
       <button type="submit" id="submit">Confirmar presença</button>
