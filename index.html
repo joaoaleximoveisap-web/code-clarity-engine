@@ -774,7 +774,7 @@ $('createdSee').addEventListener('click', () => { const s = lastCreated && $('ev
 $('createdClose').addEventListener('click', () => { $('created').hidden = true; });
 
 window.__dajStart = () => (slug ? loadGuest() : startAdmin());
-if (!window.__dajSwap) window.__dajStart();
+if (window.__dajLatest || !window.__dajSwap) window.__dajStart();
 })();
 </script>
 </body>
