@@ -1,26 +1,259 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- TODO: Set the document title to the name of your application -->
-    <title>Lovable App</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Confirmação de Presença · DAJ</title>
+<meta name="description" content="Confirme sua presença no evento DAJ Empreendimentos.">
+<meta property="og:title" content="Confirmação de Presença · DAJ Empreendimentos">
+<meta property="og:description" content="Confirme sua presença em poucos segundos.">
+<meta name="theme-color" content="#D5D4C7">
+<link rel="icon" href="logo-daj.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+/* Identidade DAJ: Calm/branco quente, Warm em texto e linhas, Michroma nos títulos, Source Sans 3 no texto. */
+:root{
+  --bg:#F5F4EE; --band:#D5D4C7; --sheet:#FBFAF6; --ink:#3B352F; --muted:#6E665D; --warm:#766B60;
+  --line:rgba(118,107,96,.28); --field:#FFFFFF; --btn:#3B352F; --btn-ink:#F5F4EE; --flag:#9A5B3A; --ok:#5E7458;
+  --display:'Michroma','Eurostile','Arial Black',sans-serif;
+  --body:'Source Sans 3','Segoe UI',system-ui,sans-serif;
+}
+body[data-theme="claro"]{--band:#F5F4EE}
+body[data-theme="escuro"]{
+  --bg:#221F1A; --band:#2B2722; --sheet:#2B2722; --ink:#E6E3D6; --muted:#ABA496; --warm:#C9C3B2;
+  --line:rgba(213,212,199,.2); --field:#1B1915; --btn:#D5D4C7; --btn-ink:#221F1A; --flag:#D99A72; --ok:#9DB792;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:400;font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+.mark{display:block;background:var(--ink);-webkit-mask:url(logo-daj.png) center/contain no-repeat;mask:url(logo-daj.png) center/contain no-repeat;aspect-ratio:900/360}
+header{background:var(--band);border-bottom:1px solid var(--line)}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+header .wrap{padding-top:calc(36px + env(safe-area-inset-top));padding-bottom:34px}
+header .mark{width:112px;margin-bottom:34px}
+.kicker{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--warm);font-weight:600;margin:0 0 12px}
+h1{font-family:var(--display);font-weight:400;text-transform:uppercase;letter-spacing:.03em;font-size:clamp(21px,6vw,30px);line-height:1.3;margin:0;text-wrap:balance}
+.when{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;margin:24px 0 0;padding-top:18px;border-top:1px solid var(--line);font-size:16px}
+.when dt{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding-top:4px}
+.when dd{margin:0;font-weight:600}
+.desc{margin:18px 0 0;color:var(--ink);white-space:pre-line}
+main .wrap{padding-top:32px;padding-bottom:calc(48px + env(safe-area-inset-bottom))}
+form{display:grid;gap:18px}
+label{display:grid;gap:7px}
+label span{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:600}
+input{font:inherit;font-size:17px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:4px;padding:14px 14px;width:100%;outline:none;transition:border-color .15s}
+input:focus{border-color:var(--warm);box-shadow:0 0 0 3px color-mix(in srgb,var(--warm) 18%,transparent)}
+input[aria-invalid="true"]{border-color:var(--flag)}
+.err{color:var(--flag);font-size:14px;min-height:0;margin:0}
+button{font-family:var(--display);font-size:13px;letter-spacing:.14em;text-transform:uppercase;background:var(--btn);color:var(--btn-ink);border:0;border-radius:4px;padding:18px 20px;cursor:pointer;width:100%;margin-top:6px}
+button:disabled{opacity:.6;cursor:wait}
+button:focus-visible,a:focus-visible{outline:2px solid var(--warm);outline-offset:3px}
+.note{font-size:13px;color:var(--muted);margin:4px 0 0;text-align:center}
+.state{text-align:left}
+.state h2{font-family:var(--display);font-weight:400;text-transform:uppercase;letter-spacing:.04em;font-size:20px;line-height:1.35;margin:0 0 12px}
+.state p{margin:0 0 12px;color:var(--ink)}
+.state .tick{width:44px;height:44px;border:1px solid var(--ok);border-radius:50%;display:grid;place-items:center;color:var(--ok);margin-bottom:20px}
+.links{display:grid;gap:10px;margin-top:22px}
+.links a{display:block;text-align:center;text-decoration:none;font-family:var(--display);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);border:1px solid var(--warm);border-radius:4px;padding:15px}
+.summary{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 0;margin:18px 0;font-size:15px;color:var(--muted)}
+.summary b{color:var(--ink);font-weight:600}
+.loading{color:var(--muted)}
+footer{text-align:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:0 20px calc(28px + env(safe-area-inset-bottom))}
+[hidden]{display:none!important}
+</style>
+</head>
+<body data-theme="calm">
+<header>
+  <div class="wrap">
+    <span class="mark" role="img" aria-label="DAJ Empreendimentos"></span>
+    <p class="kicker">Confirmação de presença</p>
+    <h1 id="title">Carregando…</h1>
+    <dl class="when" id="when" hidden>
+      <dt>Data</dt><dd id="date"></dd>
+      <dt>Horário</dt><dd id="time"></dd>
+      <dt id="locLabel">Local</dt><dd id="loc"></dd>
+    </dl>
+    <p class="desc" id="desc" hidden></p>
+  </div>
+</header>
 
-    <!-- TODO: Update og:title to match your application name -->
-    <meta property="og:title" content="Lovable App" />
-    <meta property="og:description" content="Lovable Generated Project" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+<main>
+  <div class="wrap">
+    <p class="loading" id="loading">Carregando evento…</p>
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+    <form id="form" novalidate hidden>
+      <label><span>Nome da empresa</span><input id="company" name="company" autocomplete="organization" maxlength="160" required></label>
+      <label><span>Sua função na empresa</span><input id="job" name="job" autocomplete="organization-title" maxlength="120" placeholder="Ex.: Corretor, Diretor, Gerente" required></label>
+      <label><span>Seu nome</span><input id="name" name="name" autocomplete="name" maxlength="160" required></label>
+      <label><span>Telefone (WhatsApp)</span><input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(43) 99999-9999" maxlength="16" required></label>
+      <p class="err" id="err" role="alert" hidden></p>
+      <button type="submit" id="submit">Confirmar presença</button>
+      <p class="note">Seus dados ficam só com a DAJ Empreendimentos.</p>
+    </form>
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    <section class="state" id="done" hidden>
+      <div class="tick" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <h2>Presença confirmada</h2>
+      <p id="doneMsg"></p>
+      <div class="summary" id="doneSummary"></div>
+      <div class="links"><a id="calLink" target="_blank" rel="noopener">Adicionar à minha agenda</a></div>
+    </section>
+
+    <section class="state" id="closed" hidden>
+      <h2 id="closedTitle">Inscrições encerradas</h2>
+      <p id="closedMsg">As confirmações para este evento já foram encerradas. Fale com a equipe DAJ se precisar de ajuda.</p>
+    </section>
+  </div>
+</main>
+<footer>DAJ Empreendimentos</footer>
+
+<script>
+const SUPABASE_URL = 'https://zpcwiiwhqjppewzxwegg.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Eab1bvYUdYoFDfUj5cBF_g_MAJbDB32';
+const API = window.DAJ_PRESENCE_API || SUPABASE_URL + '/rest/v1';
+const headers = { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' };
+
+const $ = (id) => document.getElementById(id);
+const slug = new URLSearchParams(location.search).get('e') || '';
+let event = null;
+
+const pad = (n) => String(n).padStart(2, '0');
+const fmtDate = (d) => d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).replace(/^./, (c) => c.toUpperCase());
+const fmtTime = (d) => `${pad(d.getHours())}h${pad(d.getMinutes())}`;
+const digits = (v) => v.replace(/\D/g, '');
+
+function maskPhone(v) {
+  const d = digits(v).replace(/^55(?=\d{10,11}$)/, '').slice(0, 11);
+  if (d.length <= 2) return d.length ? `(${d}` : '';
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+
+function show(which) {
+  for (const id of ['loading', 'form', 'done', 'closed']) $(id).hidden = id !== which;
+}
+
+function stop(title, msg, heading) {
+  $('title').textContent = heading || 'Confirmação de presença';
+  $('closedTitle').textContent = title;
+  $('closedMsg').textContent = msg;
+  show('closed');
+}
+
+function remember(data) {
+  try { localStorage.setItem('daj-presenca-' + slug, JSON.stringify(data)); } catch {}
+}
+function recall() {
+  try { return JSON.parse(localStorage.getItem('daj-presenca-' + slug) || 'null'); } catch { return null; }
+}
+
+function calendarUrl() {
+  const start = new Date(event.starts_at);
+  const end = event.ends_at ? new Date(event.ends_at) : new Date(start.getTime() + 2 * 3600e3);
+  const z = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const p = new URLSearchParams({ action: 'TEMPLATE', text: event.title, dates: `${z(start)}/${z(end)}`, details: event.description || '', location: event.location || '' });
+  return 'https://calendar.google.com/calendar/render?' + p.toString();
+}
+
+function showDone(data) {
+  $('doneMsg').textContent = event.success_message || `Obrigado, ${data.full_name.split(' ')[0]}! Te esperamos no dia ${new Date(event.starts_at).toLocaleDateString('pt-BR')} às ${fmtTime(new Date(event.starts_at))}.`;
+  $('doneSummary').innerHTML = '';
+  for (const [k, v] of [['Nome', data.full_name], ['Empresa', data.company], ['Função', data.job_title]]) {
+    const line = document.createElement('div');
+    line.append(k + ': ');
+    const b = document.createElement('b');
+    b.textContent = v;
+    line.append(b);
+    $('doneSummary').append(line);
+  }
+  $('calLink').href = calendarUrl();
+  show('done');
+}
+
+async function load() {
+  if (!/^[a-z0-9-]{3,80}$/.test(slug)) {
+    stop('Link incompleto', 'Abra o link exatamente como recebeu da equipe DAJ.');
+    return;
+  }
+  try {
+    const r = await fetch(`${API}/presence_events?slug=eq.${slug}&select=id,title,starts_at,ends_at,location,description,success_message,theme,is_open`, { headers });
+    if (!r.ok) throw new Error(r.status);
+    event = (await r.json())[0] || null;
+  } catch {
+    stop('Sem conexão', 'Não foi possível abrir o evento agora. Verifique a internet e tente de novo.');
+    return;
+  }
+  if (!event) {
+    stop('Evento não encontrado', 'Este link não existe mais ou foi digitado errado. Peça o link novamente à equipe DAJ.');
+    return;
+  }
+  document.body.dataset.theme = event.theme || 'calm';
+  const metaTheme = getComputedStyle(document.body).getPropertyValue('--band').trim();
+  document.querySelector('meta[name="theme-color"]').content = metaTheme;
+  document.title = `${event.title} · Confirmação de Presença`;
+  $('title').textContent = event.title;
+  const start = new Date(event.starts_at);
+  $('date').textContent = fmtDate(start);
+  $('time').textContent = fmtTime(start) + (event.ends_at ? ' às ' + fmtTime(new Date(event.ends_at)) : '');
+  if (event.location) $('loc').textContent = event.location;
+  else { $('loc').hidden = true; $('locLabel').hidden = true; }
+  $('when').hidden = false;
+  if (event.description) { $('desc').textContent = event.description; $('desc').hidden = false; }
+
+  const prev = recall();
+  if (prev) { showDone(prev); return; }
+  if (!event.is_open) { stop('Inscrições encerradas', 'As confirmações para este evento já foram encerradas. Fale com a equipe DAJ se precisar de ajuda.', event.title); return; }
+  show('form');
+}
+
+$('phone').addEventListener('input', (e) => { e.target.value = maskPhone(e.target.value); });
+
+$('form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = {
+    event_id: event.id,
+    company: $('company').value.trim(),
+    job_title: $('job').value.trim(),
+    full_name: $('name').value.trim().replace(/\s+/g, ' '),
+    phone: digits($('phone').value).replace(/^55(?=\d{10,11}$)/, ''),
+  };
+  const bad = [];
+  for (const [id, ok] of [['company', data.company], ['job', data.job_title], ['name', data.full_name], ['phone', /^\d{10,11}$/.test(data.phone)]]) {
+    $(id).setAttribute('aria-invalid', ok ? 'false' : 'true');
+    if (!ok) bad.push(id);
+  }
+  if (bad.length) {
+    $('err').textContent = bad.includes('phone') && bad.length === 1 ? 'Confira o telefone com DDD.' : 'Preencha todos os campos.';
+    $('err').hidden = false;
+    $(bad[0]).focus();
+    return;
+  }
+  $('err').hidden = true;
+  $('submit').disabled = true;
+  $('submit').textContent = 'Enviando…';
+  try {
+    const r = await fetch(`${API}/presence_rsvps`, { method: 'POST', headers: { ...headers, Prefer: 'return=minimal' }, body: JSON.stringify(data) });
+    if (r.status === 409) { remember(data); showDone(data); return; }
+    if (!r.ok) {
+      // Evento fechado no meio do caminho: a regra do banco recusa.
+      if (r.status === 401 || r.status === 403) { stop('Inscrições encerradas', 'As confirmações para este evento foram encerradas.', event.title); return; }
+      throw new Error(r.status);
+    }
+    remember(data);
+    showDone(data);
+  } catch {
+    $('err').textContent = 'Não foi possível enviar. Verifique a internet e toque em confirmar de novo.';
+    $('err').hidden = false;
+  } finally {
+    $('submit').disabled = false;
+    $('submit').textContent = 'Confirmar presença';
+  }
+});
+
+load();
+</script>
+</body>
 </html>
