@@ -331,3 +331,58 @@ on public.presence_rsvps for delete to authenticated
 using (exists (select 1 from public.presence_events e where e.id = event_id and e.owner_user_id = auth.uid()));
 
 notify pgrst, 'reload schema';
+
+-- ================================================================
+-- FOTO DO CONVITE (opcional, uma por evento)
+-- Aparece no topo da página do convidado. Fica guardada no próprio evento
+-- (imagem já reduzida pelo site, até ~1,5 MB).
+-- ================================================================
+
+alter table public.presence_events add column if not exists invite_image text;
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'presence_events_invite_image_check') then
+    alter table public.presence_events add constraint presence_events_invite_image_check
+      check (invite_image is null or (invite_image like 'data:image/%' and length(invite_image) <= 2000000));
+  end if;
+end $$;
+
+-- Página do convidado: mesma de antes + a foto do convite.
+create or replace function public.presence_public_event(p_slug text)
+returns jsonb language sql stable security definer set search_path = public as $$
+  select jsonb_build_object('id', e.id, 'slug', e.slug, 'title', e.title, 'starts_at', e.starts_at, 'ends_at', e.ends_at,
+    'location', e.location, 'description', e.description, 'success_message', e.success_message, 'theme', e.theme,
+    'invite_image', e.invite_image, 'state', public.presence_registration_state(e.id))
+  from public.presence_events e where e.slug = p_slug;
+$$;
+grant execute on function public.presence_public_event(text) to anon, authenticated;
+
+-- Lista do painel: sem a foto (fica leve); só avisa se o evento tem convite.
+create or replace function public.presence_admin_list(p_code text)
+returns jsonb language plpgsql stable security definer set search_path = public as $$
+declare v_owner uuid := public.presence_admin_owner(p_code);
+begin
+  if v_owner is null then raise exception 'codigo_invalido' using errcode = '28000'; end if;
+  return jsonb_build_object(
+    'owner_name', (select c.owner_name from public.presence_admin_codes c where c.owner_user_id = v_owner limit 1),
+    'events', coalesce((
+      select jsonb_agg((to_jsonb(e) - 'invite_image') || jsonb_build_object('has_invite', e.invite_image is not null, 'rsvps', coalesce((
+        select jsonb_agg(to_jsonb(r) order by r.created_at)
+        from public.presence_rsvps r where r.event_id = e.id
+      ), '[]'::jsonb)) order by e.starts_at)
+      from public.presence_events e where e.owner_user_id = v_owner
+    ), '[]'::jsonb));
+end $$;
+
+-- Colocar, trocar (p_image = data:image/...) ou tirar (p_image = null) a foto de um evento do dono.
+create or replace function public.presence_admin_set_invite(p_code text, p_event_id uuid, p_image text)
+returns void language plpgsql security definer set search_path = public as $$
+declare v_owner uuid := public.presence_admin_owner(p_code);
+begin
+  if v_owner is null then raise exception 'codigo_invalido' using errcode = '28000'; end if;
+  update public.presence_events set invite_image = p_image where id = p_event_id and owner_user_id = v_owner;
+  if not found then raise exception 'evento_de_outro_gestor' using errcode = '42501'; end if;
+end $$;
+grant execute on function public.presence_admin_set_invite(text, uuid, text) to anon, authenticated;
+
+notify pgrst, 'reload schema';

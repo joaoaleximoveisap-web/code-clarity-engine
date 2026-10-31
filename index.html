@@ -133,6 +133,16 @@ label .datebox,label .dateph{font-size:16px;letter-spacing:0;text-transform:none
 .datebox.semdata input{color:transparent}
 .dateph{display:none;position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;pointer-events:none;white-space:nowrap}
 .datebox.semdata .dateph{display:block}
+/* Foto do convite: no topo da página do convidado, informações embaixo. */
+.invite{display:block;width:100%;height:auto;border-radius:4px;margin:0 0 26px;box-shadow:0 1px 0 var(--line)}
+.invitepick{display:grid;gap:10px}
+.invitepick .lbl{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.invitepick img{display:block;max-width:320px;width:100%;border-radius:4px;border:1px solid var(--line)}
+.invitepick .note{margin:0}
+.invitepick .acts{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+.pickbtn{position:relative;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-family:var(--display);font-size:11px;letter-spacing:.14em;text-transform:uppercase;border-radius:4px}
+.pickbtn span{font-size:inherit;letter-spacing:inherit;color:inherit;font-weight:400}
+.pickbtn input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .owner{margin:10px 0 0;font-size:15px;font-weight:600;color:var(--warm)}
 .bar .acts{display:flex;gap:8px}
 .bar .acts .btn{min-height:46px}
@@ -264,6 +274,7 @@ td.x button:hover{color:var(--flag)}
 <header>
   <div class="wrap">
     <span class="mark" role="img" aria-label="DAJ Empreendimentos"></span>
+    <img class="invite" id="invite" alt="Convite do evento" hidden>
     <p class="kicker" id="kicker">Confirmação de presença</p>
     <h1 id="title">Carregando…</h1>
     <p class="owner" id="owner" hidden></p>
@@ -361,6 +372,15 @@ td.x button:hover{color:var(--flag)}
           <label class="half"><span>Visual da página</span><select id="fTheme"><option value="calm">Calm (bege DAJ)</option><option value="claro">Claro</option><option value="escuro">Escuro</option></select></label>
           <label class="half"><span>Descrição</span><textarea id="fDesc" maxlength="2000" placeholder="Aparece abaixo do nome do evento"></textarea></label>
           <label class="half"><span>Mensagem depois de confirmar</span><textarea id="fMsg" maxlength="500" placeholder="Ex.: Presença confirmada! Te esperamos às 14h."></textarea></label>
+          <div class="full invitepick">
+            <span class="lbl">Foto do convite (opcional)</span>
+            <img id="fInvitePrev" alt="Prévia do convite" hidden>
+            <p class="note" id="fInviteNote">Aparece no topo da página do convidado, com as informações do evento embaixo.</p>
+            <div class="acts">
+              <label class="btn line pickbtn"><span id="fInviteLbl">Escolher foto</span><input id="fInvite" type="file" accept="image/*"></label>
+              <button type="button" class="btn line" id="fInviteDel" hidden>Tirar foto</button>
+            </div>
+          </div>
         </div>
         <p class="err" id="edErr" role="alert" hidden></p>
         <div class="acts">
@@ -389,9 +409,11 @@ const headers = { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' };
 
 const $ = (id) => document.getElementById(id);
 const pad = (n) => String(n).padStart(2, '0');
-const fmtLongDate = (d) => d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).replace(/^./, (c) => c.toUpperCase());
+// Ano aparece sempre que não for o ano atual: um ano digitado errado fica visível na hora.
+const otherYear = (d) => d.getFullYear() !== new Date().getFullYear();
+const fmtLongDate = (d) => d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', ...(otherYear(d) ? { year: 'numeric' } : {}) }).replace(/^./, (c) => c.toUpperCase());
 const fmtTime = (d) => `${pad(d.getHours())}h${pad(d.getMinutes())}`;
-const fmtDay = (d) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+const fmtDay = (d) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', ...(otherYear(d) ? { year: '2-digit' } : {}) });
 const fmtWeek = (d) => d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase();
 const fmtStamp = (iso) => new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
 const fmtPhone = (d) => d.length === 11 ? `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}` : d.length === 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}` : d;
@@ -504,6 +526,7 @@ async function loadGuest() {
   document.querySelector('meta[name="theme-color"]').content = getComputedStyle(document.body).getPropertyValue('--band').trim();
   document.title = `${event.title} · Confirmação de Presença`;
   $('title').textContent = event.title;
+  if (event.invite_image) { $('invite').src = event.invite_image; $('invite').hidden = false; }
   $('date').textContent = fmtLongDate(new Date(event.starts_at));
   $('time').textContent = eventTime(event);
   $('loc').textContent = event.location || 'Endereço a confirmar';
@@ -796,10 +819,11 @@ function renderDetail(e) {
       el('div', { class: 'acts' },
         el('button', { type: 'button', class: 'btn', onclick: () => copyLink(e) }, 'Copiar link'),
         el('button', { type: 'button', class: 'btn line', onclick: () => shareWhats(e) }, 'Enviar no WhatsApp'),
-        el('a', { class: 'btn line', href: eventLink(e), target: '_blank', rel: 'noopener' }, 'Ver página'))),
+        el('a', { class: 'btn line', href: eventLink(e), target: '_blank', rel: 'noopener' }, 'Ver página'),
+        // Editar fica à vista: muda nome, data, horário, endereço e foto sem mudar o link já enviado.
+        el('button', { type: 'button', class: 'btn line', onclick: () => openEditor(e) }, 'Editar evento'))),
     el('div', { class: 'dtools' },
       el('div', { class: 'links' },
-        el('button', { type: 'button', onclick: () => openEditor(e) }, 'Editar'),
         el('button', { type: 'button', onclick: () => openEditor(e, true) }, 'Duplicar'),
         sKey !== 'cancelado' ? el('button', { type: 'button', onclick: () => toggleOpen(e) }, e.is_open ? 'Encerrar inscrições' : 'Reabrir inscrições') : null,
         n ? el('button', { type: 'button', onclick: () => downloadXlsx(e) }, 'Baixar Excel') : null,
@@ -885,12 +909,70 @@ function openEditor(e, duplicate) {
   $('fMsg').value = e ? e.success_message || '' : '';
   $('fTheme').value = e ? e.theme : 'calm';
   $('fStatus').value = !e || duplicate ? 'aberto' : e.cancelled ? 'cancelado' : e.is_open ? 'aberto' : 'encerrado';
+  setInvitePreview(null);
+  inviteData = undefined;
+  // A lista não traz a foto (fica leve): busca a do evento quando ele tem convite.
+  if (e && e.has_invite) {
+    rpcCall('presence_public_event', { p_slug: e.slug }).then((d) => {
+      if (!d || !d.invite_image || $('editor').hidden) return;
+      setInvitePreview(d.invite_image);
+      if (duplicate) inviteData = d.invite_image; // a cópia leva a mesma foto
+    }).catch(() => {});
+  }
   $('edErr').hidden = true;
   $('editor').hidden = false;
   $('listView').hidden = true; $('listBox').hidden = true; $('detail').hidden = true;
   $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
   $('fTitle').focus();
 }
+
+// Foto do convite: undefined = não mexeu, null = tirar, texto = foto nova (já reduzida).
+let inviteData;
+
+function setInvitePreview(src) {
+  $('fInvitePrev').hidden = !src;
+  if (src) $('fInvitePrev').src = src; else $('fInvitePrev').removeAttribute('src');
+  $('fInviteDel').hidden = !src;
+  $('fInviteLbl').textContent = src ? 'Trocar foto' : 'Escolher foto';
+  $('fInvite').value = '';
+}
+
+// Reduz para no máximo 1400px de largura em JPEG: fica leve para abrir no celular do convidado.
+function shrinkImage(file) {
+  return new Promise((ok, fail) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, 1400 / img.naturalWidth, 2400 / img.naturalHeight);
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.naturalWidth * scale);
+      c.height = Math.round(img.naturalHeight * scale);
+      const g = c.getContext('2d');
+      g.fillStyle = '#fff';
+      g.fillRect(0, 0, c.width, c.height);
+      g.drawImage(img, 0, 0, c.width, c.height);
+      let q = 0.85, out = c.toDataURL('image/jpeg', q);
+      while (out.length > 1500000 && q > 0.4) { q -= 0.15; out = c.toDataURL('image/jpeg', q); }
+      out.length > 1900000 ? fail(new Error('grande')) : ok(out);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); fail(new Error('formato')); };
+    img.src = url;
+  });
+}
+
+$('fInvite').addEventListener('change', async () => {
+  const file = $('fInvite').files[0];
+  if (!file) return;
+  try {
+    inviteData = await shrinkImage(file);
+    setInvitePreview(inviteData);
+  } catch {
+    toast('Não foi possível usar essa imagem. Tente uma foto JPG ou PNG.');
+    $('fInvite').value = '';
+  }
+});
+$('fInviteDel').addEventListener('click', () => { inviteData = null; setInvitePreview(null); });
 
 function eventPayload(e, overrides = {}) {
   return {
@@ -914,6 +996,14 @@ async function saveEvent(ev) {
   const cap = parseInt($('fCap').value, 10);
   const status = $('fStatus').value;
   const prev = adminEvents.find((x) => x.id === editingId);
+  // Data que já passou (ex.: ano 2016 no lugar de 2026) não salva: o convidado veria o dia da semana errado.
+  const dateChanged = !prev || toDateInput(new Date(prev.starts_at)) !== $('fDate').value;
+  if (dateChanged && startsAt.getTime() < Date.now() - 24 * 3600e3) {
+    $('edErr').textContent = `Confira a data: ${startsAt.toLocaleDateString('pt-BR')} já passou. Veja se o ano está certo.`;
+    $('edErr').hidden = false;
+    $('fDate').focus();
+    return;
+  }
   const slugValue = prev ? prev.slug : makeSlug(title, startsAt);
   $('saveBtn').disabled = true;
   try {
@@ -927,6 +1017,11 @@ async function saveEvent(ev) {
       p_registration_deadline: $('fDeadline').value ? new Date($('fDeadline').value).toISOString() : null,
     });
     const wasNew = !editingId;
+    const savedId = (saved && saved.id) || editingId;
+    if (inviteData !== undefined && savedId) {
+      try { await rpc('presence_admin_set_invite', { p_event_id: savedId, p_image: inviteData }); }
+      catch { toast('Evento salvo, mas a foto do convite não. Tente de novo em Editar.'); }
+    }
     $('editor').hidden = true;
     $('listBox').hidden = false;
     await reloadEvents();
