@@ -123,8 +123,19 @@ body.admin header .wrap{padding-bottom:26px}
 .meta .minor{display:flex;gap:16px}
 .meta .minor button{all:unset;cursor:pointer;font-size:14px;font-weight:600;color:var(--warm)}
 .meta .minor button:hover{color:var(--ink);text-decoration:underline}
-.bar input,.bar select{padding:11px 12px;font-size:15px}
+/* Busca, data e status com a mesma altura em qualquer navegador (o iOS desenha data e lista do seu jeito). */
+.bar input,.bar select{-webkit-appearance:none;appearance:none;display:block;height:46px;min-height:46px;padding:0 12px;font-size:16px;line-height:44px}
+.bar select{padding-right:34px;background:var(--field) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23766B60' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 12px center}
+.bar input::-webkit-date-and-time-value{text-align:left;margin:0}
+.bar input::-webkit-search-decoration{-webkit-appearance:none}
+label .datebox,label .dateph{font-size:16px;letter-spacing:0;text-transform:none;font-weight:400;line-height:1.2}
+.datebox{position:relative;display:block;color:var(--ink)}
+.datebox.semdata input{color:transparent}
+.dateph{display:none;position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;pointer-events:none;white-space:nowrap}
+.datebox.semdata .dateph{display:block}
+.owner{margin:10px 0 0;font-size:15px;font-weight:600;color:var(--warm)}
 .bar .acts{display:flex;gap:8px}
+.bar .acts .btn{min-height:46px}
 .totals{margin:0;color:var(--muted);font-size:15px}
 .btn{width:auto;margin:0;padding:12px 18px;font-size:11px;white-space:nowrap}
 .btn.line{background:transparent;color:var(--ink);border:1px solid var(--warm)}
@@ -201,13 +212,50 @@ td.x button:hover{color:var(--flag)}
 .grid .full{grid-column:1/-1}.grid .half{grid-column:span 2}
 .grid input,.grid select{font-size:16px;padding:13px}
 .editor .acts{display:flex;gap:10px;margin-top:20px}
+/* Celular: ação principal primeiro, busca, depois data e status lado a lado; tudo com toque de 48px. */
 @media (max-width:760px){
-  .bar{grid-template-columns:1fr 1fr}.bar .q{grid-column:1/-1}.bar .acts{grid-column:1/-1}
-  .grid{grid-template-columns:1fr 1fr}.grid .half{grid-column:1/-1}
+  body.admin header .wrap{padding-top:calc(18px + env(safe-area-inset-top));padding-bottom:16px}
+  body.admin header .mark{width:70px;margin-bottom:14px}
+  body.admin .kicker{display:none}
+  body.admin h1{font-size:19px}
+  body.admin .owner{margin-top:6px;font-size:14px}
+  body.admin main .wrap{padding-top:18px}
+  .bar{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px 10px;margin-bottom:10px}
+  .bar .q{grid-column:1/-1}
+  .bar .acts{grid-column:1/-1;order:-1}
+  .bar .acts .btn{width:100%;min-height:52px;font-size:12px}
+  .bar label{gap:5px}
+  .bar label>span:first-child{font-size:10px}
+  .bar input,.bar select{height:48px;min-height:48px;line-height:46px}
+  .meta{margin:0 0 14px}
+  .totals,.meta .minor button{font-size:13.5px}
+  .meta .minor button{padding:12px 0}
+  .ewhen b{font-size:16px}
+  .ename b{font-size:13.5px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .ename small{font-size:13.5px}
+  .estat .tag{font-size:9.5px;padding:1px 6px}
+  .ecount b{font-size:24px}
+  .erow{min-height:72px}
+  .dinfo h2{overflow-wrap:anywhere}
+  .dcount b{font-size:34px}
+  .dshare .acts{display:grid;grid-template-columns:1fr;gap:10px}
+  .dshare .acts .btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;padding:0 16px;text-align:center}
+  .dtools{padding:10px 0 18px}
+  .dtools button{padding:10px 0}
+  #dq{height:48px}
+  .grid{grid-template-columns:1fr 1fr;gap:14px 10px}
+  .grid>label{grid-column:1/-1}
+  .grid>label.pair{grid-column:auto}
+  .editor .acts{flex-direction:column}
+  .editor .acts .btn,.created .acts .btn{width:100%;min-height:50px}
+  .group{margin-top:26px}
 }
+/* Data e hora do formulário de evento também com altura certa no iPhone. */
+.grid input[type="date"],.grid input[type="time"],.grid input[type="datetime-local"]{-webkit-appearance:none;appearance:none;display:block;min-height:50px}
+.grid input::-webkit-date-and-time-value{text-align:left;margin:0}
 .install{margin-top:28px;display:grid;gap:10px}
 @media (display-mode:standalone){header .wrap{padding-top:calc(20px + env(safe-area-inset-top))}}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:4px;font-size:15px;z-index:9}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));max-width:calc(100% - 32px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:4px;font-size:15px;z-index:9}
 [hidden]{display:none!important}
 #lovable-badge{display:none!important}
 </style>
@@ -218,6 +266,7 @@ td.x button:hover{color:var(--flag)}
     <span class="mark" role="img" aria-label="DAJ Empreendimentos"></span>
     <p class="kicker" id="kicker">Confirmação de presença</p>
     <h1 id="title">Carregando…</h1>
+    <p class="owner" id="owner" hidden></p>
     <dl class="when" id="when" hidden>
       <dt>Data</dt><dd id="date"></dd>
       <dt>Horário</dt><dd id="time"></dd>
@@ -276,8 +325,8 @@ td.x button:hover{color:var(--flag)}
     <section id="panel" hidden>
       <div id="listView">
       <div class="bar">
-        <label class="q"><span>Buscar evento ou participante</span><input id="q" type="search" placeholder="Nome do evento, pessoa, empresa ou telefone"></label>
-        <label><span>Data</span><input id="fltDate" type="date"></label>
+        <label class="q"><span>Buscar evento ou participante</span><input id="q" type="search" placeholder="Evento, pessoa, empresa ou telefone"></label>
+        <label><span>Data</span><span class="datebox semdata" id="fltDateBox"><input id="fltDate" type="date" aria-label="Data do evento"><span class="dateph" aria-hidden="true">Qualquer data</span></span></label>
         <label><span>Status</span><select id="fltStatus"><option value="">Todos</option><option value="aberto">Abertos</option><option value="encerrado">Encerrados</option><option value="cancelado">Cancelados</option></select></label>
         <div class="acts">
           <button type="button" class="btn" id="newBtn">+ Criar evento</button>
@@ -303,8 +352,8 @@ td.x button:hover{color:var(--flag)}
         <div class="grid">
           <label class="full"><span>Nome do evento *</span><input id="fTitle" maxlength="140" placeholder="Ex.: Apresentação The View"></label>
           <label><span>Data *</span><input id="fDate" type="date"></label>
-          <label><span>Início *</span><input id="fStart" type="time"></label>
-          <label><span>Término</span><input id="fEnd" type="time"></label>
+          <label class="pair"><span>Início *</span><input id="fStart" type="time"></label>
+          <label class="pair"><span>Término</span><input id="fEnd" type="time"></label>
           <label><span>Inscrições</span><select id="fStatus"><option value="aberto">Abertas</option><option value="encerrado">Encerradas</option><option value="cancelado">Evento cancelado</option></select></label>
           <label class="full"><span>Local ou endereço</span><input id="fLoc" maxlength="200" placeholder="Ex.: Stand The One — Gleba Palhano, Londrina"></label>
           <label><span>Limite de participantes</span><input id="fCap" type="number" min="1" inputmode="numeric" placeholder="Sem limite"></label>
@@ -605,15 +654,40 @@ function startAdmin() {
   if (adminCode) openPanel(); else show('login');
 }
 
-async function reloadEvents() {
-  adminEvents = await rpc('presence_admin_list');
-  render();
+// Cada código tem um dono: a lista vem como { owner_name, events } (o banco antigo devolvia só a lista).
+let ownerName = '';
+async function fetchEvents() {
+  const code = adminCode;
+  const data = await rpc('presence_admin_list');
+  if (code !== adminCode) return false; // trocou de código enquanto carregava: descarta
+  adminEvents = Array.isArray(data) ? data : data.events || [];
+  ownerName = Array.isArray(data) ? '' : data.owner_name || '';
+  $('owner').textContent = ownerName ? `Área de ${ownerName}` : '';
+  $('owner').hidden = !ownerName;
+  return true;
 }
+
+async function reloadEvents() {
+  if (await fetchEvents()) render();
+}
+
+// Ao sair, nada do dono anterior fica na tela nem na memória.
+function resetPanel() {
+  clearInterval(refreshTimer);
+  adminEvents = []; ownerName = ''; selectedId = null; editingId = null; lastCreated = null;
+  for (const id of ['list', 'detailTop', 'detailTable']) $(id).innerHTML = '';
+  for (const id of ['q', 'fltDate', 'fltStatus', 'dq']) $(id).value = '';
+  syncDateBox();
+  $('owner').textContent = ''; $('owner').hidden = true;
+  $('created').hidden = true; $('editor').hidden = true;
+}
+
+function syncDateBox() { $('fltDateBox').classList.toggle('semdata', !$('fltDate').value); }
 
 async function openPanel() {
   show('loading');
   try {
-    adminEvents = await rpc('presence_admin_list');
+    if (!(await fetchEvents())) return;
   } catch (e) {
     show('login');
     if (e.message === 'codigo') { saveCode(''); adminCode = ''; }
@@ -843,7 +917,7 @@ async function saveEvent(ev) {
   const slugValue = prev ? prev.slug : makeSlug(title, startsAt);
   $('saveBtn').disabled = true;
   try {
-    await rpc('presence_admin_save_event', {
+    const saved = await rpc('presence_admin_save_event', {
       p_id: editingId, p_slug: slugValue, p_title: title,
       p_starts_at: startsAt.toISOString(), p_ends_at: endsAt ? endsAt.toISOString() : null,
       p_location: $('fLoc').value.trim() || null, p_description: $('fDesc').value.trim() || null,
@@ -857,7 +931,8 @@ async function saveEvent(ev) {
     $('listBox').hidden = false;
     await reloadEvents();
     if (wasNew) {
-      lastCreated = adminEvents.find((x) => x.slug === slugValue);
+      // O banco pode ajustar o final do link se o nome já existir na área de outro gestor.
+      lastCreated = adminEvents.find((x) => x.id === (saved && saved.id)) || adminEvents.find((x) => x.slug === slugValue);
       if (lastCreated) {
         openEvent(lastCreated.id);
         $('created').hidden = false;
@@ -898,6 +973,7 @@ $('loginForm').addEventListener('submit', async (ev) => {
   if (!adminCode) return;
   $('loginErr').hidden = true;
   $('loginBtn').disabled = true;
+  resetPanel();
   saveCode(adminCode);
   await openPanel();
   $('loginBtn').disabled = false;
@@ -905,8 +981,9 @@ $('loginForm').addEventListener('submit', async (ev) => {
 $('newBtn').addEventListener('click', () => openEditor(null));
 $('cancelBtn').addEventListener('click', () => { $('editor').hidden = true; $('listBox').hidden = false; render(); });
 $('editor').addEventListener('submit', saveEvent);
-$('outBtn').addEventListener('click', () => { saveCode(''); adminCode = ''; clearInterval(refreshTimer); $('code').value = ''; show('login'); });
+$('outBtn').addEventListener('click', () => { saveCode(''); adminCode = ''; resetPanel(); $('code').value = ''; $('loginErr').hidden = true; show('login'); });
 for (const id of ['q', 'fltDate', 'fltStatus']) $(id).addEventListener('input', render);
+for (const t of ['input', 'change']) $('fltDate').addEventListener(t, syncDateBox);
 $('dq').addEventListener('input', render);
 $('backBtn').addEventListener('click', () => { selectedId = null; $('created').hidden = true; render(); });
 $('createdClose').addEventListener('click', () => { $('created').hidden = true; });

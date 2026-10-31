@@ -202,3 +202,132 @@ grant execute on function public.presence_admin_save_event(text, uuid, text, tex
 grant execute on function public.presence_admin_delete(text, uuid, uuid) to anon, authenticated;
 
 notify pgrst, 'reload schema';
+
+-- ================================================================
+-- V3: CADA GESTOR COM A SUA ÁREA (João Alex e Rodrigo Vicente)
+-- Cada código de acesso tem um dono; cada evento tem um dono.
+-- O painel do site e a aba Eventos do CRM só mostram os eventos do dono.
+-- Pode rodar mais de uma vez; não apaga nenhum evento nem inscrição.
+-- ================================================================
+
+-- 1) Dono do evento. Os eventos que já existem são do João Alex.
+alter table public.presence_events add column if not exists owner_user_id uuid;
+update public.presence_events set owner_user_id = 'fc79a8fa-7a00-419a-87d3-c6d7808903b5' where owner_user_id is null;
+alter table public.presence_events alter column owner_user_id set not null;
+alter table public.presence_events alter column owner_user_id set default auth.uid();
+create index if not exists presence_events_owner_idx on public.presence_events (owner_user_id, starts_at);
+
+-- 2) Códigos de acesso com dono (só o hash fica no banco; ninguém lê a tabela direto).
+create table if not exists public.presence_admin_codes (
+  code_hash text primary key,
+  owner_user_id uuid not null,
+  owner_name text not null
+);
+alter table public.presence_admin_codes enable row level security;
+revoke all on public.presence_admin_codes from anon, authenticated;
+
+insert into public.presence_admin_codes (code_hash, owner_user_id, owner_name) values
+  ('<sha256 do código do João>', 'fc79a8fa-7a00-419a-87d3-c6d7808903b5', 'João Alex'),
+  ('<sha256 do código do Rodrigo>', '419bde53-3a04-49bc-91ec-456f557da7ec', 'Rodrigo Vicente')
+on conflict (code_hash) do update set owner_user_id = excluded.owner_user_id, owner_name = excluded.owner_name;
+
+-- 3) Dono do código (null = código inválido).
+create or replace function public.presence_admin_owner(p_code text)
+returns uuid language sql stable security definer set search_path = public as $$
+  select owner_user_id from public.presence_admin_codes
+  where code_hash = encode(sha256(convert_to(coalesce(p_code, ''), 'UTF8')), 'hex');
+$$;
+
+create or replace function public.presence_admin_ok(p_code text)
+returns boolean language sql stable security definer set search_path = public as $$
+  select public.presence_admin_owner(p_code) is not null;
+$$;
+
+-- 4) Lista: só os eventos do dono do código, com o nome do dono para o topo do painel.
+create or replace function public.presence_admin_list(p_code text)
+returns jsonb language plpgsql stable security definer set search_path = public as $$
+declare v_owner uuid := public.presence_admin_owner(p_code);
+begin
+  if v_owner is null then raise exception 'codigo_invalido' using errcode = '28000'; end if;
+  return jsonb_build_object(
+    'owner_name', (select c.owner_name from public.presence_admin_codes c where c.owner_user_id = v_owner limit 1),
+    'events', coalesce((
+      select jsonb_agg(to_jsonb(e) || jsonb_build_object('rsvps', coalesce((
+        select jsonb_agg(to_jsonb(r) order by r.created_at)
+        from public.presence_rsvps r where r.event_id = e.id
+      ), '[]'::jsonb)) order by e.starts_at)
+      from public.presence_events e where e.owner_user_id = v_owner
+    ), '[]'::jsonb));
+end $$;
+
+-- 5) Salvar: evento novo fica com o dono do código; só o dono altera o próprio evento.
+create or replace function public.presence_admin_save_event(
+  p_code text, p_id uuid, p_slug text, p_title text, p_starts_at timestamptz, p_ends_at timestamptz,
+  p_location text, p_description text, p_success_message text, p_theme text, p_is_open boolean,
+  p_capacity int, p_registration_deadline timestamptz, p_cancelled boolean)
+returns jsonb language plpgsql security definer set search_path = public as $$
+declare
+  v_owner uuid := public.presence_admin_owner(p_code);
+  v_slug text := p_slug;
+  v public.presence_events;
+begin
+  if v_owner is null then raise exception 'codigo_invalido' using errcode = '28000'; end if;
+  if p_id is null then
+    -- O link é único entre todos os gestores: se o nome já existe na área do outro, ganha um final.
+    while exists (select 1 from public.presence_events where slug = v_slug) loop
+      v_slug := left(regexp_replace(p_slug, '-+$', ''), 75) || '-' || substr(md5(random()::text), 1, 3);
+    end loop;
+    insert into public.presence_events (slug, title, starts_at, ends_at, location, description, success_message, theme, is_open, capacity, registration_deadline, cancelled, created_by, owner_user_id)
+    values (v_slug, p_title, p_starts_at, p_ends_at, p_location, p_description, p_success_message, p_theme, p_is_open, p_capacity, p_registration_deadline, coalesce(p_cancelled, false), null, v_owner)
+    returning * into v;
+  else
+    update public.presence_events set title = p_title, starts_at = p_starts_at, ends_at = p_ends_at, location = p_location,
+      description = p_description, success_message = p_success_message, theme = p_theme, is_open = p_is_open,
+      capacity = p_capacity, registration_deadline = p_registration_deadline, cancelled = coalesce(p_cancelled, false)
+    where id = p_id and owner_user_id = v_owner returning * into v;
+    if v.id is null then raise exception 'evento_de_outro_gestor' using errcode = '42501'; end if;
+  end if;
+  return to_jsonb(v);
+end $$;
+
+-- 6) Excluir: só evento do dono, ou inscrição de evento do dono.
+create or replace function public.presence_admin_delete(p_code text, p_event_id uuid, p_rsvp_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+declare v_owner uuid := public.presence_admin_owner(p_code);
+begin
+  if v_owner is null then raise exception 'codigo_invalido' using errcode = '28000'; end if;
+  if p_rsvp_id is not null then
+    delete from public.presence_rsvps r using public.presence_events e
+    where r.id = p_rsvp_id and e.id = r.event_id and e.owner_user_id = v_owner;
+  end if;
+  if p_event_id is not null then
+    delete from public.presence_events where id = p_event_id and owner_user_id = v_owner;
+  end if;
+end $$;
+
+revoke all on function public.presence_admin_owner(text) from public, anon, authenticated;
+revoke all on function public.presence_admin_ok(text) from public, anon, authenticated;
+grant execute on function public.presence_admin_list(text) to anon, authenticated;
+grant execute on function public.presence_admin_save_event(text, uuid, text, text, timestamptz, timestamptz, text, text, text, text, boolean, int, timestamptz, boolean) to anon, authenticated;
+grant execute on function public.presence_admin_delete(text, uuid, uuid) to anon, authenticated;
+
+-- 7) CRM: cada um vê e mexe só no que é seu (a leitura pública do evento continua para a página do convidado).
+drop policy if exists "Presence events: admin manages" on public.presence_events;
+drop policy if exists "Presence events: owner manages" on public.presence_events;
+create policy "Presence events: owner manages"
+on public.presence_events for all to authenticated
+using (owner_user_id = auth.uid()) with check (owner_user_id = auth.uid());
+
+drop policy if exists "Presence rsvps: admin can view" on public.presence_rsvps;
+drop policy if exists "Presence rsvps: owner can view" on public.presence_rsvps;
+create policy "Presence rsvps: owner can view"
+on public.presence_rsvps for select to authenticated
+using (exists (select 1 from public.presence_events e where e.id = event_id and e.owner_user_id = auth.uid()));
+
+drop policy if exists "Presence rsvps: admin can delete" on public.presence_rsvps;
+drop policy if exists "Presence rsvps: owner can delete" on public.presence_rsvps;
+create policy "Presence rsvps: owner can delete"
+on public.presence_rsvps for delete to authenticated
+using (exists (select 1 from public.presence_events e where e.id = event_id and e.owner_user_id = auth.uid()));
+
+notify pgrst, 'reload schema';
