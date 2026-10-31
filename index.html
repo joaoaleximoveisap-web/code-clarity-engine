@@ -135,7 +135,8 @@ label .datebox,label .dateph{font-size:16px;letter-spacing:0;text-transform:none
 .datebox.semdata .dateph{display:block}
 /* Foto do convite: no topo da página do convidado, informações embaixo. */
 .invite{display:block;width:100%;height:auto;border-radius:4px;margin:0 0 26px;box-shadow:0 1px 0 var(--line)}
-.invitepick{display:grid;gap:10px}
+.invitepick{display:grid;gap:10px;border:1px dashed transparent;border-radius:4px;transition:border-color .15s}
+.invitepick.drop{border-color:var(--warm);background:color-mix(in srgb,var(--band) 40%,transparent)}
 .invitepick .lbl{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .invitepick img{display:block;max-width:320px;width:100%;border-radius:4px;border:1px solid var(--line)}
 .invitepick .note{margin:0}
@@ -375,7 +376,7 @@ td.x button:hover{color:var(--flag)}
           <div class="full invitepick">
             <span class="lbl">Foto do convite (opcional)</span>
             <img id="fInvitePrev" alt="Prévia do convite" hidden>
-            <p class="note" id="fInviteNote">Aparece no topo da página do convidado, com as informações do evento embaixo.</p>
+            <p class="note" id="fInviteNote">Aparece no topo da página do convidado, com as informações do evento embaixo. Vale foto ou print: escolha o arquivo, cole (Ctrl+V) ou arraste a imagem para cá.</p>
             <div class="acts">
               <label class="btn line pickbtn"><span id="fInviteLbl">Escolher foto</span><input id="fInvite" type="file" accept="image/*"></label>
               <button type="button" class="btn line" id="fInviteDel" hidden>Tirar foto</button>
@@ -429,6 +430,7 @@ const SECTIONS = ['loading', 'form', 'done', 'closed', 'login', 'panel'];
 function show(which) { for (const id of SECTIONS) $(id).hidden = id !== which; }
 
 function toast(msg) {
+  for (const old of document.querySelectorAll('.toast')) old.remove(); // um aviso por vez, sem sobrepor
   const t = document.createElement('div');
   t.className = 'toast';
   t.textContent = msg;
@@ -947,6 +949,11 @@ function openEditor(e, duplicate) {
     }).catch(() => {});
   }
   $('edErr').hidden = true;
+  // Evento salvo com ano errado (ex.: 2016): avisa já ao abrir para corrigir a data.
+  if (start && !duplicate && otherYear(start) && start.getTime() < Date.now()) {
+    $('edErr').textContent = `Atenção: a data deste evento está em ${start.getFullYear()}. Corrija o ano no campo Data e salve.`;
+    $('edErr').hidden = false;
+  }
   $('editor').hidden = false;
   $('listView').hidden = true; $('listBox').hidden = true; $('detail').hidden = true;
   $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -988,8 +995,7 @@ function shrinkImage(file) {
   });
 }
 
-$('fInvite').addEventListener('change', async () => {
-  const file = $('fInvite').files[0];
+async function useInviteFile(file) {
   if (!file) return;
   try {
     inviteData = await shrinkImage(file);
@@ -998,6 +1004,24 @@ $('fInvite').addEventListener('change', async () => {
     toast('Não foi possível usar essa imagem. Tente uma foto JPG ou PNG.');
     $('fInvite').value = '';
   }
+}
+$('fInvite').addEventListener('change', () => useInviteFile($('fInvite').files[0]));
+// Print também vale: colar (Ctrl+V) com o formulário aberto, ou arrastar a imagem para o campo da foto.
+const imageIn = (list) => [...(list || [])].find((f) => f.type && f.type.startsWith('image/'));
+document.addEventListener('paste', (ev) => {
+  if ($('editor').hidden) return;
+  const file = imageIn(ev.clipboardData && ev.clipboardData.files);
+  if (!file) return;
+  ev.preventDefault();
+  useInviteFile(file).then(() => toast('Print colado como foto do convite'));
+});
+const pick = document.querySelector('.invitepick');
+pick.addEventListener('dragover', (ev) => { ev.preventDefault(); pick.classList.add('drop'); });
+pick.addEventListener('dragleave', () => pick.classList.remove('drop'));
+pick.addEventListener('drop', (ev) => {
+  ev.preventDefault();
+  pick.classList.remove('drop');
+  useInviteFile(imageIn(ev.dataTransfer && ev.dataTransfer.files));
 });
 $('fInviteDel').addEventListener('click', () => { inviteData = null; setInvitePreview(null); });
 
@@ -1045,10 +1069,15 @@ async function saveEvent(ev) {
     });
     const wasNew = !editingId;
     const savedId = (saved && saved.id) || editingId;
+    let inviteFailed = '';
     if (inviteData !== undefined && savedId) {
       inviteCache.delete(savedId);
       try { await rpc('presence_admin_set_invite', { p_event_id: savedId, p_image: inviteData }); }
-      catch { toast('Evento salvo, mas a foto do convite não. Tente de novo em Editar.'); }
+      catch (err) {
+        inviteFailed = err.message === 'sem_banco'
+          ? 'Evento salvo. A foto do convite só salva depois que o SQL novo for rodado no banco.'
+          : 'Evento salvo, mas a foto do convite não. Tente de novo em Editar evento.';
+      }
     }
     $('editor').hidden = true;
     $('listBox').hidden = false;
@@ -1059,9 +1088,9 @@ async function saveEvent(ev) {
       if (lastCreated) {
         openEvent(lastCreated.id);
         $('created').hidden = false;
-        navigator.clipboard.writeText(eventLink(lastCreated)).then(() => toast('Evento criado — link copiado'), () => {});
+        navigator.clipboard.writeText(eventLink(lastCreated)).then(() => toast(inviteFailed || 'Evento criado — link copiado'), () => {});
       }
-    } else toast('Evento atualizado');
+    } else toast(inviteFailed || 'Evento atualizado');
   } catch {
     $('edErr').textContent = 'Não foi possível salvar. Tente de novo.';
     $('edErr').hidden = false;

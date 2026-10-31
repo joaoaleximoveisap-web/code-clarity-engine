@@ -312,6 +312,7 @@ grant execute on function public.presence_admin_save_event(text, uuid, text, tex
 grant execute on function public.presence_admin_delete(text, uuid, uuid) to anon, authenticated;
 
 -- 7) CRM: cada um vê e mexe só no que é seu (a leitura pública do evento continua para a página do convidado).
+--    O João (master) também lê as inscrições do Rodrigo, para o "Entrar como Rodrigo" no CRM.
 drop policy if exists "Presence events: admin manages" on public.presence_events;
 drop policy if exists "Presence events: owner manages" on public.presence_events;
 create policy "Presence events: owner manages"
@@ -322,7 +323,7 @@ drop policy if exists "Presence rsvps: admin can view" on public.presence_rsvps;
 drop policy if exists "Presence rsvps: owner can view" on public.presence_rsvps;
 create policy "Presence rsvps: owner can view"
 on public.presence_rsvps for select to authenticated
-using (exists (select 1 from public.presence_events e where e.id = event_id and e.owner_user_id = auth.uid()));
+using (exists (select 1 from public.presence_events e where e.id = event_id and (e.owner_user_id = auth.uid() or auth.uid() = 'fc79a8fa-7a00-419a-87d3-c6d7808903b5'::uuid)));
 
 drop policy if exists "Presence rsvps: admin can delete" on public.presence_rsvps;
 drop policy if exists "Presence rsvps: owner can delete" on public.presence_rsvps;
