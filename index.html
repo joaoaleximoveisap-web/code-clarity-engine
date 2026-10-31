@@ -803,6 +803,7 @@ function renderDetail(e) {
   const [sKey, sLabel] = statusOf(e);
   const box = $('detailTop');
   const table = $('detailTable');
+  preloadInvite(e);
   box.innerHTML = '';
   table.innerHTML = '';
   const meta = [`${fmtLongDate(start)} · ${eventTime(e)}`, e.location || 'Endereço a confirmar',
@@ -855,9 +856,35 @@ async function copyLink(e) {
   catch { prompt('Copie o link:', eventLink(e)); }
 }
 
+// Foto do convite já carregada ao abrir o evento: o compartilhamento precisa sair na hora do toque.
+const inviteCache = new Map();
+function preloadInvite(e) {
+  if (!e.has_invite || inviteCache.has(e.id)) return;
+  inviteCache.set(e.id, null);
+  rpcCall('presence_public_event', { p_slug: e.slug }).then((d) => { if (d && d.invite_image) inviteCache.set(e.id, d.invite_image); }).catch(() => inviteCache.delete(e.id));
+}
+function dataUrlToFile(url, name) {
+  const [head, b64] = url.split(',');
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new File([bytes], name, { type: head.slice(5).split(';')[0] });
+}
+
+// Com foto do convite (celular): envia a foto com o texto e o link na legenda. Sem foto: link com a prévia padrão.
 function shareWhats(e) {
   const start = new Date(e.starts_at);
   const text = `${e.title}\n${start.toLocaleDateString('pt-BR')} às ${fmtTime(start)}\n${e.location || 'Endereço a confirmar'}\n\nConfirme sua presença: ${eventLink(e)}`;
+  const img = inviteCache.get(e.id);
+  if (img && navigator.canShare) {
+    const file = dataUrlToFile(img, `Convite-${e.slug}.jpg`);
+    if (navigator.canShare({ files: [file], text })) {
+      navigator.share({ files: [file], text }).catch((err) => {
+        if (err && err.name !== 'AbortError') window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+      });
+      return;
+    }
+  }
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
 }
 
@@ -1019,6 +1046,7 @@ async function saveEvent(ev) {
     const wasNew = !editingId;
     const savedId = (saved && saved.id) || editingId;
     if (inviteData !== undefined && savedId) {
+      inviteCache.delete(savedId);
       try { await rpc('presence_admin_set_invite', { p_event_id: savedId, p_image: inviteData }); }
       catch { toast('Evento salvo, mas a foto do convite não. Tente de novo em Editar.'); }
     }
