@@ -15,14 +15,14 @@
 <style>
 /* Identidade DAJ: Calm/branco quente, Warm em texto e linhas, Michroma nos títulos, Source Sans 3 no texto. */
 :root{
-  --bg:#F5F4EE; --band:#D5D4C7; --sheet:#FBFAF6; --ink:#3B352F; --muted:#6E665D; --warm:#766B60;
+  --bg:#F5F4EE; --band:#D5D4C7; --ink:#3B352F; --muted:#6E665D; --warm:#766B60;
   --line:rgba(118,107,96,.28); --field:#FFFFFF; --btn:#3B352F; --btn-ink:#F5F4EE; --flag:#9A5B3A; --ok:#5E7458;
   --display:'Michroma','Eurostile','Arial Black',sans-serif;
   --body:'Source Sans 3','Segoe UI',system-ui,sans-serif;
 }
 body[data-theme="claro"]{--band:#F5F4EE}
 body[data-theme="escuro"]{
-  --bg:#221F1A; --band:#2B2722; --sheet:#2B2722; --ink:#E6E3D6; --muted:#ABA496; --warm:#C9C3B2;
+  --bg:#221F1A; --band:#2B2722; --ink:#E6E3D6; --muted:#ABA496; --warm:#C9C3B2;
   --line:rgba(213,212,199,.2); --field:#1B1915; --btn:#D5D4C7; --btn-ink:#221F1A; --flag:#D99A72; --ok:#9DB792;
 }
 *{box-sizing:border-box}
@@ -38,38 +38,45 @@ h1{font-family:var(--display);font-weight:400;text-transform:uppercase;letter-sp
 .when{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;margin:24px 0 0;padding-top:18px;border-top:1px solid var(--line);font-size:16px}
 .when dt{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding-top:4px}
 .when dd{margin:0;font-weight:600}
-.desc{margin:18px 0 0;color:var(--ink);white-space:pre-line}
+.desc{margin:18px 0 0;white-space:pre-line}
 main .wrap{padding-top:32px;padding-bottom:calc(48px + env(safe-area-inset-bottom))}
 form{display:grid;gap:18px}
 label{display:grid;gap:7px}
 label span{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:600}
-input{font:inherit;font-size:17px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:4px;padding:14px 14px;width:100%;outline:none;transition:border-color .15s}
-input:focus{border-color:var(--warm);box-shadow:0 0 0 3px color-mix(in srgb,var(--warm) 18%,transparent)}
+input,select,textarea{font:inherit;font-size:17px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:4px;padding:14px;width:100%;outline:none;transition:border-color .15s}
+textarea{min-height:92px;resize:vertical;font-size:16px}
+input:focus,select:focus,textarea:focus{border-color:var(--warm);box-shadow:0 0 0 3px color-mix(in srgb,var(--warm) 18%,transparent)}
 input[aria-invalid="true"]{border-color:var(--flag)}
-.err{color:var(--flag);font-size:14px;min-height:0;margin:0}
+.hp{position:absolute;left:-5000px;width:1px;height:1px;overflow:hidden}
+.err{color:var(--flag);font-size:14px;margin:0}
 button{font-family:var(--display);font-size:13px;letter-spacing:.14em;text-transform:uppercase;background:var(--btn);color:var(--btn-ink);border:0;border-radius:4px;padding:18px 20px;cursor:pointer;width:100%;margin-top:6px}
 button:disabled{opacity:.6;cursor:wait}
 button:focus-visible,a:focus-visible{outline:2px solid var(--warm);outline-offset:3px}
-.note{font-size:13px;color:var(--muted);margin:4px 0 0;text-align:center}
-.state{text-align:left}
+.note{font-size:13px;color:var(--muted);margin:4px 0 0;line-height:1.5}
 .state h2{font-family:var(--display);font-weight:400;text-transform:uppercase;letter-spacing:.04em;font-size:20px;line-height:1.35;margin:0 0 12px}
-.state p{margin:0 0 12px;color:var(--ink)}
-.state .tick{width:44px;height:44px;border:1px solid var(--ok);border-radius:50%;display:grid;place-items:center;color:var(--ok);margin-bottom:20px}
+.state p{margin:0 0 12px}
+.tick{width:44px;height:44px;border:1px solid var(--ok);border-radius:50%;display:grid;place-items:center;color:var(--ok);margin-bottom:20px}
 .links{display:grid;gap:10px;margin-top:22px}
-.links a{display:block;text-align:center;text-decoration:none;font-family:var(--display);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);border:1px solid var(--warm);border-radius:4px;padding:15px}
+.links a,.links button,.ghost{display:block;width:100%;text-align:center;text-decoration:none;font-family:var(--display);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);background:transparent;border:1px solid var(--warm);border-radius:4px;padding:15px;margin:0}
 .summary{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 0;margin:18px 0;font-size:15px;color:var(--muted)}
 .summary b{color:var(--ink);font-weight:600}
 .loading{color:var(--muted)}
 footer{text-align:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:0 20px calc(28px + env(safe-area-inset-bottom))}
-/* Painel do gestor: lista corrida, sem cards. */
-body.admin .wrap{max-width:1040px}
+
+/* Área do gestor: lista corrida, sem cards. */
+body.admin .wrap{max-width:1080px}
 body.admin header .wrap{padding-bottom:26px}
-.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:26px}
-.bar p{margin:0;color:var(--muted);font-size:15px}
-.bar .acts{display:flex;gap:8px;flex-wrap:wrap}
-.btn{width:auto;margin:0;padding:12px 18px;font-size:11px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) 170px 170px auto;gap:10px;align-items:end;margin-bottom:10px}
+.bar input,.bar select{padding:11px 12px;font-size:15px}
+.bar .acts{display:flex;gap:8px}
+.totals{margin:0 0 28px;color:var(--muted);font-size:15px}
+.btn{width:auto;margin:0;padding:12px 18px;font-size:11px;white-space:nowrap}
 .btn.line{background:transparent;color:var(--ink);border:1px solid var(--warm)}
-.ev{margin:0 0 44px}
+.created{border:1px solid var(--ok);border-left-width:4px;padding:18px 20px;margin:0 0 32px}
+.created h2{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:16px;margin:0 0 6px;color:var(--ok)}
+.created .url{font-size:15px;word-break:break-all;margin:0 0 12px;font-weight:600}
+.created .acts{display:flex;flex-wrap:wrap;gap:8px}
+.ev{margin:0 0 44px;scroll-margin-top:16px}
 .ev.past{opacity:.62}
 .evhead{display:grid;grid-template-columns:auto 1fr auto;gap:6px 22px;align-items:end;border-bottom:2px solid var(--ink);padding-bottom:10px}
 .evwhen{font-variant-numeric:tabular-nums;line-height:1.25}
@@ -78,6 +85,8 @@ body.admin header .wrap{padding-bottom:26px}
 .evname{min-width:0}
 .evname h2{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:17px;letter-spacing:.03em;line-height:1.35;margin:0}
 .evname p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+.tag{display:inline-block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;border:1px solid currentColor;border-radius:3px;padding:1px 7px;margin-right:6px}
+.tag.aberto{color:var(--ok)}.tag.encerrado,.tag.prazo,.tag.lotado{color:var(--warm)}.tag.cancelado{color:var(--flag)}
 .evcount{text-align:right;line-height:1}
 .evcount b{font-size:34px;font-variant-numeric:tabular-nums}
 .evcount small{display:block;font-size:12px;color:var(--muted);margin-top:4px}
@@ -101,13 +110,13 @@ td.x button:hover{color:var(--flag)}
 .editor h2{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:17px;margin:0 0 18px}
 .grid{display:grid;gap:16px;grid-template-columns:repeat(4,minmax(0,1fr))}
 .grid .full{grid-column:1/-1}.grid .half{grid-column:span 2}
-select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:4px;padding:13px 14px;width:100%}
-textarea{min-height:92px;resize:vertical}
-.check{display:flex;align-items:center;gap:10px;grid-column:1/-1}
-.check input{width:20px;height:20px}
-.check span{font-size:15px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:400}
+.grid input,.grid select{font-size:16px;padding:13px}
 .editor .acts{display:flex;gap:10px;margin-top:20px}
-@media (max-width:720px){.grid{grid-template-columns:1fr 1fr}.grid .half{grid-column:1/-1}.evhead{grid-template-columns:1fr auto}.evwhen{grid-column:1/-1}}
+@media (max-width:760px){
+  .bar{grid-template-columns:1fr 1fr}.bar .q{grid-column:1/-1}.bar .acts{grid-column:1/-1}
+  .grid{grid-template-columns:1fr 1fr}.grid .half{grid-column:1/-1}
+  .evhead{grid-template-columns:1fr auto}.evwhen{grid-column:1/-1}
+}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:4px;font-size:15px;z-index:9}
 [hidden]{display:none!important}
 </style>
@@ -116,7 +125,7 @@ textarea{min-height:92px;resize:vertical}
 <header>
   <div class="wrap">
     <span class="mark" role="img" aria-label="DAJ Empreendimentos"></span>
-    <p class="kicker">Confirmação de presença</p>
+    <p class="kicker" id="kicker">Confirmação de presença</p>
     <h1 id="title">Carregando…</h1>
     <dl class="when" id="when" hidden>
       <dt>Data</dt><dd id="date"></dd>
@@ -129,83 +138,119 @@ textarea{min-height:92px;resize:vertical}
 
 <main>
   <div class="wrap">
-    <p class="loading" id="loading">Carregando evento…</p>
+    <p class="loading" id="loading">Carregando…</p>
 
     <form id="form" novalidate hidden>
-      <label><span>Nome da empresa</span><input id="company" name="company" autocomplete="organization" maxlength="160" required></label>
-      <label><span>Sua função na empresa</span><input id="job" name="job" autocomplete="organization-title" maxlength="120" placeholder="Ex.: Corretor, Diretor, Gerente" required></label>
-      <label><span>Seu nome</span><input id="name" name="name" autocomplete="name" maxlength="160" required></label>
-      <label><span>Telefone (WhatsApp)</span><input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(43) 99999-9999" maxlength="16" required></label>
+      <label><span>Nome completo</span><input id="name" autocomplete="name" maxlength="160" required></label>
+      <label><span>Empresa</span><input id="company" autocomplete="organization" maxlength="160" required></label>
+      <label><span>Cargo ou função na empresa</span><input id="job" autocomplete="organization-title" maxlength="120" placeholder="Ex.: Corretor, Diretor, Gerente" required></label>
+      <label><span>Telefone com WhatsApp</span><input id="phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(43) 99999-9999" maxlength="16" required></label>
+      <div class="hp" aria-hidden="true"><label>Site<input id="website" tabindex="-1" autocomplete="off"></label></div>
       <p class="err" id="err" role="alert" hidden></p>
       <button type="submit" id="submit">Confirmar presença</button>
-      <p class="note">Seus dados ficam só com a DAJ Empreendimentos.</p>
+      <p class="note">Usamos estes dados somente para organizar sua presença neste evento da DAJ Empreendimentos e, se preciso, falar com você pelo WhatsApp sobre ele. Não compartilhamos com terceiros. Para pedir a exclusão, fale com a equipe DAJ.</p>
     </form>
 
     <section class="state" id="done" hidden>
       <div class="tick" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
-      <h2>Presença confirmada</h2>
+      <h2 id="doneTitle">Presença confirmada</h2>
       <p id="doneMsg"></p>
       <div class="summary" id="doneSummary"></div>
-      <div class="links"><a id="calLink" target="_blank" rel="noopener">Adicionar à minha agenda</a></div>
+      <div class="links">
+        <a id="calLink" target="_blank" rel="noopener">Adicionar à minha agenda</a>
+        <button type="button" id="againBtn">Inscrever outra pessoa</button>
+      </div>
+    </section>
+
+    <section class="state" id="closed" hidden>
+      <h2 id="closedTitle"></h2>
+      <p id="closedMsg"></p>
+      <button type="button" class="ghost" id="retryBtn" hidden>Tentar novamente</button>
     </section>
 
     <section id="login" hidden>
+      <p class="note" style="margin:0 0 22px;font-size:15px">Convidado: abra o link de confirmação que você recebeu da equipe DAJ. Esta é a área de gestão dos eventos.</p>
       <form id="loginForm" novalidate>
         <label><span>Código de acesso do gestor</span><input id="code" autocomplete="current-password" type="password" required></label>
         <p class="err" id="loginErr" role="alert" hidden></p>
         <button type="submit" id="loginBtn">Entrar</button>
-        <p class="note">Você digita uma vez; este navegador lembra.</p>
+        <p class="note" style="text-align:center">Você digita uma vez; este navegador lembra.</p>
       </form>
     </section>
 
     <section id="panel" hidden>
       <div class="bar">
-        <p id="totals"></p>
+        <label class="q"><span>Buscar evento ou participante</span><input id="q" type="search" placeholder="Nome do evento, pessoa, empresa ou telefone"></label>
+        <label><span>Data</span><input id="fltDate" type="date"></label>
+        <label><span>Status</span><select id="fltStatus"><option value="">Todos</option><option value="aberto">Abertos</option><option value="encerrado">Encerrados</option><option value="cancelado">Cancelados</option></select></label>
         <div class="acts">
-          <button type="button" class="btn" id="newBtn">+ Novo evento</button>
+          <button type="button" class="btn" id="newBtn">+ Criar evento</button>
           <button type="button" class="btn line" id="outBtn">Sair</button>
         </div>
       </div>
+      <p class="totals" id="totals"></p>
+
+      <section class="created" id="created" hidden>
+        <h2>Evento criado</h2>
+        <p class="note" id="createdName"></p>
+        <p class="url" id="createdUrl"></p>
+        <div class="acts">
+          <button type="button" class="btn" id="createdCopy">Copiar link</button>
+          <button type="button" class="btn line" id="createdWhats">Compartilhar no WhatsApp</button>
+          <button type="button" class="btn line" id="createdSee">Visualizar inscrições</button>
+          <button type="button" class="btn line" id="createdClose">Fechar</button>
+        </div>
+      </section>
+
       <form class="editor" id="editor" novalidate hidden>
-        <h2 id="edTitle">Novo evento</h2>
+        <h2 id="edTitle">Criar evento</h2>
         <div class="grid">
-          <label class="full"><span>Nome do evento *</span><input id="fTitle" maxlength="140" placeholder="Ex.: Café com Imobiliárias — The One"></label>
+          <label class="full"><span>Nome do evento *</span><input id="fTitle" maxlength="140" placeholder="Ex.: Apresentação The View"></label>
           <label><span>Data *</span><input id="fDate" type="date"></label>
           <label><span>Início *</span><input id="fStart" type="time"></label>
           <label><span>Término</span><input id="fEnd" type="time"></label>
-          <label><span>Visual da página</span><select id="fTheme"><option value="calm">Calm (bege DAJ)</option><option value="claro">Claro</option><option value="escuro">Escuro</option></select></label>
-          <label class="full"><span>Endereço / local</span><input id="fLoc" maxlength="200" placeholder="Ex.: Stand The One — Gleba Palhano, Londrina"></label>
-          <label class="half"><span>Texto do convite</span><textarea id="fDesc" maxlength="2000" placeholder="Aparece abaixo do nome do evento"></textarea></label>
-          <label class="half"><span>Mensagem depois de confirmar</span><textarea id="fMsg" maxlength="500" placeholder="Ex.: Presença confirmada! Te esperamos às 19h."></textarea></label>
-          <label class="check"><input id="fOpen" type="checkbox" checked><span>Inscrições abertas</span></label>
+          <label><span>Inscrições</span><select id="fStatus"><option value="aberto">Abertas</option><option value="encerrado">Encerradas</option><option value="cancelado">Evento cancelado</option></select></label>
+          <label class="full"><span>Local ou endereço</span><input id="fLoc" maxlength="200" placeholder="Ex.: Stand The One — Gleba Palhano, Londrina"></label>
+          <label><span>Limite de participantes</span><input id="fCap" type="number" min="1" inputmode="numeric" placeholder="Sem limite"></label>
+          <label><span>Inscrições até</span><input id="fDeadline" type="datetime-local"></label>
+          <label class="half"><span>Visual da página</span><select id="fTheme"><option value="calm">Calm (bege DAJ)</option><option value="claro">Claro</option><option value="escuro">Escuro</option></select></label>
+          <label class="half"><span>Descrição</span><textarea id="fDesc" maxlength="2000" placeholder="Aparece abaixo do nome do evento"></textarea></label>
+          <label class="half"><span>Mensagem depois de confirmar</span><textarea id="fMsg" maxlength="500" placeholder="Ex.: Presença confirmada! Te esperamos às 14h."></textarea></label>
         </div>
         <p class="err" id="edErr" role="alert" hidden></p>
         <div class="acts">
-          <button type="submit" class="btn" id="saveBtn">Criar evento</button>
+          <button type="submit" class="btn" id="saveBtn">Salvar evento</button>
           <button type="button" class="btn line" id="cancelBtn">Cancelar</button>
         </div>
       </form>
       <div id="list"></div>
-    </section>
-
-    <section class="state" id="closed" hidden>
-      <h2 id="closedTitle">Inscrições encerradas</h2>
-      <p id="closedMsg">As confirmações para este evento já foram encerradas. Fale com a equipe DAJ se precisar de ajuda.</p>
     </section>
   </div>
 </main>
 <footer>DAJ Empreendimentos</footer>
 
 <script>
-// Área do gestor: abre quando o link não tem ?e=. Tudo passa por funções do banco que conferem o código.
-const ADMIN_KEY = 'daj-presenca-codigo';
-let adminCode = '';
-let adminEvents = [];
-let editingId = null;
-let refreshTimer = null;
+const SUPABASE_URL = 'https://zpcwiiwhqjppewzxwegg.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Eab1bvYUdYoFDfUj5cBF_g_MAJbDB32';
+const API = window.DAJ_PRESENCE_API || SUPABASE_URL + '/rest/v1';
+const headers = { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' };
 
-function readCode() { try { return localStorage.getItem(ADMIN_KEY) || ''; } catch { return ''; } }
-function saveCode(v) { try { v ? localStorage.setItem(ADMIN_KEY, v) : localStorage.removeItem(ADMIN_KEY); } catch {} }
+const $ = (id) => document.getElementById(id);
+const pad = (n) => String(n).padStart(2, '0');
+const fmtLongDate = (d) => d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).replace(/^./, (c) => c.toUpperCase());
+const fmtTime = (d) => `${pad(d.getHours())}h${pad(d.getMinutes())}`;
+const fmtDay = (d) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+const fmtWeek = (d) => d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase();
+const fmtStamp = (iso) => new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+const fmtPhone = (d) => d.length === 11 ? `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}` : d.length === 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}` : d;
+const digits = (v) => v.replace(/\D/g, '');
+const eventTime = (e) => fmtTime(new Date(e.starts_at)) + (e.ends_at ? ' às ' + fmtTime(new Date(e.ends_at)) : '');
+
+// O código do evento vem em ?e=codigo (ou /evento/codigo, se o servidor encaminhar).
+const slug = (new URLSearchParams(location.search).get('e') || (location.pathname.match(/\/evento\/([a-z0-9-]+)/) || [])[1] || '').toLowerCase();
+
+const SECTIONS = ['loading', 'form', 'done', 'closed', 'login', 'panel'];
+function show(which) { for (const id of SECTIONS) $(id).hidden = id !== which; }
 
 function toast(msg) {
   const t = document.createElement('div');
@@ -215,23 +260,194 @@ function toast(msg) {
   setTimeout(() => t.remove(), 2600);
 }
 
-async function rpc(fn, args) {
-  const r = await fetch(`${API}/rpc/${fn}`, { method: 'POST', headers, body: JSON.stringify({ p_code: adminCode, ...args }) });
+async function rpcCall(fn, args) {
+  const r = await fetch(`${API}/rpc/${fn}`, { method: 'POST', headers, body: JSON.stringify(args) });
   const text = await r.text();
   if (!r.ok) {
-    const err = new Error(text.includes('codigo_invalido') ? 'codigo' : text.includes('PGRST202') || r.status === 404 ? 'sem_banco' : 'falha');
-    throw err;
+    const e = new Error(text.includes('codigo_invalido') ? 'codigo' : text.includes('PGRST202') ? 'sem_banco' : 'falha');
+    e.status = r.status;
+    throw e;
   }
   return text ? JSON.parse(text) : null;
 }
 
+/* ───────────── Convidado ───────────── */
+let event = null;
+
+const STATE_TEXT = {
+  fechado: ['Inscrições encerradas', 'As confirmações para este evento foram encerradas. Fale com a equipe DAJ se precisar de ajuda.'],
+  prazo: ['Inscrições encerradas', 'O prazo para confirmar presença neste evento terminou. Fale com a equipe DAJ se precisar de ajuda.'],
+  lotado: ['Vagas esgotadas', 'Todas as vagas deste evento já foram preenchidas. Fale com a equipe DAJ para entrar na lista de espera.'],
+  cancelado: ['Evento cancelado', 'Este evento foi cancelado. A equipe DAJ entrará em contato com mais informações.'],
+};
+
+function stop(title, msg, retry) {
+  $('closedTitle').textContent = title;
+  $('closedMsg').textContent = msg;
+  $('retryBtn').hidden = !retry;
+  show('closed');
+}
+
+function remember(data) { try { localStorage.setItem('daj-presenca-' + slug, JSON.stringify(data)); } catch {} }
+function recall() { try { return JSON.parse(localStorage.getItem('daj-presenca-' + slug) || 'null'); } catch { return null; } }
+function forget() { try { localStorage.removeItem('daj-presenca-' + slug); } catch {} }
+
+function maskPhone(v) {
+  const d = digits(v).replace(/^55(?=\d{10,11}$)/, '').slice(0, 11);
+  if (d.length <= 2) return d.length ? `(${d}` : '';
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+
+function calendarUrl() {
+  const start = new Date(event.starts_at);
+  const end = event.ends_at ? new Date(event.ends_at) : new Date(start.getTime() + 2 * 3600e3);
+  const z = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const p = new URLSearchParams({ action: 'TEMPLATE', text: event.title, dates: `${z(start)}/${z(end)}`, details: event.description || '', location: event.location || '' });
+  return 'https://calendar.google.com/calendar/render?' + p.toString();
+}
+
+function showDone(data, already) {
+  const start = new Date(event.starts_at);
+  $('doneTitle').textContent = already ? 'Presença já registrada' : 'Presença confirmada';
+  $('doneMsg').textContent = already
+    ? `Este telefone já está confirmado neste evento, ${data.full_name.split(' ')[0]}. Não precisa enviar de novo.`
+    : event.success_message || 'Sua inscrição foi realizada com sucesso.';
+  $('doneSummary').innerHTML = '';
+  for (const [k, v] of [['Evento', event.title], ['Data', fmtLongDate(start)], ['Horário', eventTime(event)], ['Nome', data.full_name]]) {
+    const line = document.createElement('div');
+    line.append(k + ': ');
+    const b = document.createElement('b');
+    b.textContent = v;
+    line.append(b);
+    $('doneSummary').append(line);
+  }
+  $('calLink').href = calendarUrl();
+  show('done');
+}
+
+async function loadGuest() {
+  show('loading');
+  if (!/^[a-z0-9-]{3,80}$/.test(slug)) {
+    $('title').textContent = 'Confirmação de presença';
+    stop('Link incompleto', 'Abra o link de confirmação exatamente como recebeu da equipe DAJ.');
+    return;
+  }
+  try {
+    event = await rpcCall('presence_public_event', { p_slug: slug });
+  } catch {
+    $('title').textContent = 'Confirmação de presença';
+    stop('Sem conexão', 'Não foi possível abrir o evento agora. Verifique a internet e tente de novo.', true);
+    return;
+  }
+  if (!event) {
+    $('title').textContent = 'Confirmação de presença';
+    stop('Evento não encontrado', 'Este link não existe mais ou foi digitado errado. Peça o link novamente à equipe DAJ.');
+    return;
+  }
+  document.body.dataset.theme = event.theme || 'calm';
+  document.querySelector('meta[name="theme-color"]').content = getComputedStyle(document.body).getPropertyValue('--band').trim();
+  document.title = `${event.title} · Confirmação de Presença`;
+  $('title').textContent = event.title;
+  $('date').textContent = fmtLongDate(new Date(event.starts_at));
+  $('time').textContent = eventTime(event);
+  $('loc').hidden = $('locLabel').hidden = !event.location;
+  $('loc').textContent = event.location || '';
+  $('when').hidden = false;
+  $('desc').hidden = !event.description;
+  $('desc').textContent = event.description || '';
+
+  const prev = recall();
+  if (prev) { showDone(prev, false); return; }
+  if (event.state !== 'ok') { stop(...STATE_TEXT[event.state] || STATE_TEXT.fechado); return; }
+  show('form');
+}
+
+$('phone').addEventListener('input', (e) => { e.target.value = maskPhone(e.target.value); });
+$('retryBtn').addEventListener('click', loadGuest);
+$('againBtn').addEventListener('click', () => {
+  forget();
+  for (const id of ['name', 'company', 'job', 'phone']) $(id).value = '';
+  // Busca a situação de novo: o evento pode ter lotado ou fechado nesse meio-tempo.
+  loadGuest();
+});
+
+$('form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if ($('website').value) { showDone({ full_name: $('name').value || 'convidado' }, false); return; } // robô
+  const data = {
+    event_id: event.id,
+    full_name: $('name').value.trim().replace(/\s+/g, ' '),
+    company: $('company').value.trim(),
+    job_title: $('job').value.trim(),
+    phone: digits($('phone').value).replace(/^55(?=\d{10,11}$)/, ''),
+  };
+  const bad = [];
+  for (const [id, ok] of [['name', data.full_name], ['company', data.company], ['job', data.job_title], ['phone', /^\d{10,11}$/.test(data.phone)]]) {
+    $(id).setAttribute('aria-invalid', ok ? 'false' : 'true');
+    if (!ok) bad.push(id);
+  }
+  if (bad.length) {
+    $('err').textContent = bad.length === 1 && bad[0] === 'phone' ? 'Confira o telefone com DDD.' : 'Preencha os quatro campos.';
+    $('err').hidden = false;
+    $(bad[0]).focus();
+    return;
+  }
+  $('err').hidden = true;
+  $('submit').disabled = true;
+  $('submit').textContent = 'Enviando…';
+  try {
+    const r = await fetch(`${API}/presence_rsvps`, { method: 'POST', headers: { ...headers, Prefer: 'return=minimal' }, body: JSON.stringify(data) });
+    if (r.status === 409) { remember(data); showDone(data, true); return; }
+    if (r.status === 401 || r.status === 403) {
+      // A regra do banco recusou: evento fechou, lotou ou passou do prazo enquanto a pessoa preenchia.
+      const fresh = await rpcCall('presence_public_event', { p_slug: slug }).catch(() => null);
+      const st = fresh && fresh.state !== 'ok' ? fresh.state : 'fechado';
+      stop(...STATE_TEXT[st] || STATE_TEXT.fechado);
+      return;
+    }
+    if (!r.ok) {
+      const t = await r.text();
+      throw new Error(t.includes('muitas_inscricoes') ? 'aguarde' : 'falha');
+    }
+    remember(data);
+    showDone(data, false);
+  } catch (err) {
+    $('err').textContent = err.message === 'aguarde'
+      ? 'Muitas confirmações ao mesmo tempo. Aguarde um minuto e toque em confirmar de novo.'
+      : 'Não foi possível enviar. Verifique a internet e toque em confirmar de novo.';
+    $('err').hidden = false;
+  } finally {
+    $('submit').disabled = false;
+    $('submit').textContent = 'Confirmar presença';
+  }
+});
+
+/* ───────────── Área do gestor (link sem ?e=) ───────────── */
+const ADMIN_KEY = 'daj-presenca-codigo';
+let adminCode = '';
+let adminEvents = [];
+let editingId = null;
+let lastCreated = null;
+let refreshTimer = null;
+
+function readCode() { try { return localStorage.getItem(ADMIN_KEY) || ''; } catch { return ''; } }
+function saveCode(v) { try { v ? localStorage.setItem(ADMIN_KEY, v) : localStorage.removeItem(ADMIN_KEY); } catch {} }
+const rpc = (fn, args = {}) => rpcCall(fn, { p_code: adminCode, ...args });
+
+// Link sempre no domínio em que o painel está publicado.
 const eventLink = (ev) => `${location.origin}${location.pathname}?e=${encodeURIComponent(ev.slug)}`;
-const fmtDay = (d) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-const fmtWeek = (d) => d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase();
-const fmtStamp = (iso) => new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-const fmtPhone = (d) => d.length === 11 ? `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}` : d.length === 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}` : d;
 const toDateInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const toTimeInput = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+function statusOf(e) {
+  if (e.cancelled) return ['cancelado', 'Cancelado'];
+  if (!e.is_open) return ['encerrado', 'Encerrado'];
+  if (e.registration_deadline && Date.now() > new Date(e.registration_deadline).getTime()) return ['prazo', 'Prazo encerrado'];
+  if (e.capacity && e.rsvps.length >= e.capacity) return ['lotado', 'Lotado'];
+  return ['aberto', 'Aberto'];
+}
 
 function makeSlug(title) {
   const base = title.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -253,20 +469,26 @@ function el(tag, props = {}, ...kids) {
 function startAdmin() {
   document.body.classList.add('admin');
   document.title = 'Área do gestor · Confirmação de Presença';
-  $('title').textContent = 'Seus eventos';
-  document.querySelector('.kicker').textContent = 'Área do gestor · Confirmação de presença';
+  $('kicker').textContent = 'Área do gestor · Confirmação de presença';
+  $('title').textContent = 'Eventos DAJ';
   adminCode = readCode();
   if (adminCode) openPanel(); else show('login');
 }
 
+async function reloadEvents() {
+  adminEvents = await rpc('presence_admin_list');
+  renderList();
+}
+
 async function openPanel() {
+  show('loading');
   try {
-    adminEvents = await rpc('presence_admin_list', {});
+    adminEvents = await rpc('presence_admin_list');
   } catch (e) {
-    if (e.message === 'codigo') { saveCode(''); adminCode = ''; show('login'); $('loginErr').textContent = 'Código incorreto.'; $('loginErr').hidden = false; return; }
     show('login');
-    $('loginErr').textContent = e.message === 'sem_banco'
-      ? 'O banco ainda não foi preparado: falta rodar o SQL da Confirmação de Presença.'
+    if (e.message === 'codigo') { saveCode(''); adminCode = ''; }
+    $('loginErr').textContent = e.message === 'codigo' ? 'Código incorreto.'
+      : e.message === 'sem_banco' ? 'O banco ainda não foi preparado: falta rodar o SQL da Confirmação de Presença.'
       : 'Sem conexão. Tente de novo.';
     $('loginErr').hidden = false;
     return;
@@ -274,67 +496,87 @@ async function openPanel() {
   show('panel');
   renderList();
   clearInterval(refreshTimer);
-  // Confirmações novas aparecem sozinhas.
-  refreshTimer = setInterval(async () => {
-    if (!$('editor').hidden) return;
-    try { adminEvents = await rpc('presence_admin_list', {}); renderList(); } catch {}
+  // Confirmações novas aparecem sozinhas, só enquanto a aba está aberta e visível.
+  refreshTimer = setInterval(() => {
+    if (document.hidden || !$('editor').hidden) return;
+    reloadEvents().catch(() => {});
   }, 20000);
 }
 
-function renderList() {
-  const total = adminEvents.reduce((s, e) => s + e.rsvps.length, 0);
-  $('totals').textContent = `${adminEvents.length} evento(s) · ${total} confirmação(ões)`;
-  const list = $('list');
-  list.innerHTML = '';
-  if (!adminEvents.length) {
-    list.append(el('p', { class: 'empty' }, 'Nenhum evento ainda. Clique em “+ Novo evento”.'));
-    return;
-  }
-  const now = Date.now();
-  const ended = (e) => new Date(e.ends_at || e.starts_at).getTime() + 6 * 3600e3 < now;
-  const upcoming = adminEvents.filter((e) => !ended(e));
-  const past = adminEvents.filter(ended).reverse();
-  for (const e of upcoming) list.append(eventBlock(e, false));
-  if (past.length) list.append(el('p', { class: 'kicker' }, 'Eventos que já passaram'));
-  for (const e of past) list.append(eventBlock(e, true));
+function matchesRsvp(r, q) {
+  return !q || r.full_name.toLowerCase().includes(q) || r.company.toLowerCase().includes(q) || r.job_title.toLowerCase().includes(q) || (q.replace(/\D/g, '') && r.phone.includes(q.replace(/\D/g, '')));
 }
 
-function eventBlock(e, isPast) {
+function renderList() {
+  const q = $('q').value.trim().toLowerCase();
+  const day = $('fltDate').value;
+  const st = $('fltStatus').value;
+  const total = adminEvents.reduce((s, e) => s + e.rsvps.length, 0);
+  $('totals').textContent = `${adminEvents.length} evento(s) · ${total} confirmação(ões) no total`;
+  const visible = adminEvents.filter((e) => {
+    if (day && toDateInput(new Date(e.starts_at)) !== day) return false;
+    const [s] = statusOf(e);
+    if (st === 'aberto' && s !== 'aberto') return false;
+    if (st === 'encerrado' && !['encerrado', 'prazo', 'lotado'].includes(s)) return false;
+    if (st === 'cancelado' && s !== 'cancelado') return false;
+    return !q || e.title.toLowerCase().includes(q) || e.rsvps.some((r) => matchesRsvp(r, q));
+  });
+  const list = $('list');
+  list.innerHTML = '';
+  if (!adminEvents.length) { list.append(el('p', { class: 'empty' }, 'Nenhum evento ainda. Clique em “+ Criar evento”.')); return; }
+  if (!visible.length) { list.append(el('p', { class: 'empty' }, 'Nenhum evento com esses filtros.')); return; }
+  const now = Date.now();
+  const ended = (e) => new Date(e.ends_at || e.starts_at).getTime() + 6 * 3600e3 < now;
+  const upcoming = visible.filter((e) => !ended(e));
+  const past = visible.filter(ended).reverse();
+  const titleHit = (e) => !q || e.title.toLowerCase().includes(q);
+  for (const e of upcoming) list.append(eventBlock(e, false, titleHit(e) ? '' : q));
+  if (past.length) list.append(el('p', { class: 'kicker' }, 'Eventos que já passaram'));
+  for (const e of past) list.append(eventBlock(e, true, titleHit(e) ? '' : q));
+}
+
+function eventBlock(e, isPast, rsvpQuery) {
   const start = new Date(e.starts_at);
   const time = fmtTime(start) + (e.ends_at ? '–' + fmtTime(new Date(e.ends_at)) : '');
   const n = e.rsvps.length;
+  const [sKey, sLabel] = statusOf(e);
+  const extra = [e.location || 'Sem endereço', e.capacity ? `${e.capacity} vagas` : null,
+    e.registration_deadline ? `inscrições até ${fmtStamp(e.registration_deadline)}` : null].filter(Boolean).join(' · ');
   const head = el('div', { class: 'evhead' },
     el('div', { class: 'evwhen' }, el('small', {}, fmtWeek(start)), el('b', {}, `${fmtDay(start)} · ${time}`)),
-    el('div', { class: 'evname' }, el('h2', {}, e.title), el('p', {}, `${e.location || 'Sem endereço'} · ${e.is_open ? 'inscrições abertas' : 'inscrições fechadas'}`)),
-    el('div', { class: 'evcount' }, el('b', {}, String(n)), el('small', {}, n === 1 ? 'confirmado' : 'confirmados')),
+    el('div', { class: 'evname' }, el('h2', {}, e.title), el('p', {}, el('span', { class: 'tag ' + sKey }, sLabel), extra)),
+    el('div', { class: 'evcount' }, el('b', {}, e.capacity ? `${n}/${e.capacity}` : String(n)), el('small', {}, n === 1 ? 'confirmado' : 'confirmados')),
   );
   const acts = el('div', { class: 'evacts' },
     el('button', { type: 'button', onclick: () => copyLink(e) }, 'Copiar link'),
-    el('button', { type: 'button', onclick: () => shareWhats(e) }, 'Enviar no WhatsApp'),
+    el('button', { type: 'button', onclick: () => shareWhats(e) }, 'WhatsApp'),
     el('a', { href: eventLink(e), target: '_blank', rel: 'noopener' }, 'Abrir página'),
-    n ? el('button', { type: 'button', onclick: () => downloadCsv(e) }, 'Baixar lista') : null,
-    el('button', { type: 'button', onclick: () => toggleOpen(e) }, e.is_open ? 'Fechar inscrições' : 'Abrir inscrições'),
+    n ? el('button', { type: 'button', onclick: () => downloadXlsx(e) }, 'Excel') : null,
+    n ? el('button', { type: 'button', onclick: () => downloadCsv(e) }, 'CSV') : null,
     el('button', { type: 'button', onclick: () => openEditor(e) }, 'Editar'),
+    el('button', { type: 'button', onclick: () => openEditor(e, true) }, 'Duplicar'),
+    sKey !== 'cancelado' ? el('button', { type: 'button', onclick: () => toggleOpen(e) }, e.is_open ? 'Encerrar inscrições' : 'Reabrir inscrições') : null,
     el('button', { type: 'button', class: 'del', onclick: () => deleteEvent(e) }, 'Excluir'),
   );
+  const rows = e.rsvps.filter((r) => matchesRsvp(r, rsvpQuery));
   let body;
   if (!n) body = el('p', { class: 'empty' }, 'Ninguém confirmou ainda.');
   else {
     const tbody = el('tbody');
-    e.rsvps.forEach((r, i) => tbody.append(el('tr', {},
-      el('td', { class: 'n' }, String(i + 1)),
+    rows.forEach((r) => tbody.append(el('tr', {},
+      el('td', { class: 'n' }, String(e.rsvps.indexOf(r) + 1)),
       el('td', { class: 'nm' }, r.full_name),
       el('td', {}, r.company),
       el('td', { class: 'mu' }, r.job_title),
       el('td', { class: 'tel' }, el('a', { href: `https://wa.me/55${r.phone}`, target: '_blank', rel: 'noopener' }, fmtPhone(r.phone))),
       el('td', { class: 'mu' }, fmtStamp(r.created_at)),
-      el('td', { class: 'x' }, el('button', { type: 'button', 'aria-label': `Excluir ${r.full_name}`, onclick: () => deleteRsvp(r) }, '×')),
+      el('td', { class: 'x' }, el('button', { type: 'button', 'aria-label': `Excluir ${r.full_name}`, title: 'Excluir inscrição', onclick: () => deleteRsvp(r) }, '×')),
     )));
     body = el('div', { class: 'tw' }, el('table', {},
-      el('thead', {}, el('tr', {}, ...['#', 'Nome', 'Empresa', 'Função', 'Telefone', 'Confirmou', ''].map((h) => el('th', {}, h)))),
+      el('thead', {}, el('tr', {}, ...['#', 'Nome', 'Empresa', 'Função', 'WhatsApp', 'Inscrição', ''].map((h) => el('th', {}, h)))),
       tbody));
   }
-  return el('section', { class: 'ev' + (isPast ? ' past' : '') }, head, acts, body);
+  return el('section', { class: 'ev' + (isPast ? ' past' : ''), id: 'ev-' + e.id }, head, acts, body);
 }
 
 async function copyLink(e) {
@@ -348,32 +590,66 @@ function shareWhats(e) {
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
 }
 
+const exportRows = (e) => e.rsvps.map((r) => ({ Nome: r.full_name, Empresa: r.company, 'Função': r.job_title, WhatsApp: fmtPhone(r.phone), 'Data da inscrição': fmtStamp(r.created_at) }));
+
 function downloadCsv(e) {
+  const rows = exportRows(e);
   const esc = (v) => `"${String(v).replace(/"/g, '""')}"`;
-  const lines = [['Nome', 'Empresa', 'Função', 'Telefone', 'Confirmou em'].join(';'),
-    ...e.rsvps.map((r) => [r.full_name, r.company, r.job_title, fmtPhone(r.phone), fmtStamp(r.created_at)].map(esc).join(';'))];
+  const lines = [Object.keys(rows[0]).join(';'), ...rows.map((r) => Object.values(r).map(esc).join(';'))];
   const a = el('a', { href: URL.createObjectURL(new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' })), download: `Presenca-${e.slug}.csv` });
   a.click();
 }
 
-function openEditor(e) {
-  editingId = e ? e.id : null;
-  $('edTitle').textContent = e ? 'Editar evento' : 'Novo evento';
-  $('saveBtn').textContent = e ? 'Salvar alterações' : 'Criar evento';
+let xlsxLoading = null;
+function loadXlsx() {
+  if (window.XLSX) return Promise.resolve();
+  xlsxLoading = xlsxLoading || new Promise((ok, fail) => {
+    const s = el('script', { src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js' });
+    s.onload = ok;
+    s.onerror = () => { xlsxLoading = null; fail(); };
+    document.head.append(s);
+  });
+  return xlsxLoading;
+}
+
+async function downloadXlsx(e) {
+  try { await loadXlsx(); } catch { toast('Não foi possível gerar o Excel. Use o CSV.'); return; }
+  const ws = XLSX.utils.json_to_sheet(exportRows(e));
+  ws['!cols'] = [{ wch: 32 }, { wch: 28 }, { wch: 22 }, { wch: 18 }, { wch: 18 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Confirmados');
+  XLSX.writeFile(wb, `Presenca-${e.slug}.xlsx`);
+}
+
+function openEditor(e, duplicate) {
+  editingId = e && !duplicate ? e.id : null;
+  $('created').hidden = true;
+  $('edTitle').textContent = !e ? 'Criar evento' : duplicate ? 'Duplicar evento' : 'Editar evento';
   const start = e ? new Date(e.starts_at) : null;
-  $('fTitle').value = e ? e.title : '';
+  $('fTitle').value = e ? e.title + (duplicate ? ' (cópia)' : '') : '';
   $('fDate').value = start ? toDateInput(start) : '';
   $('fStart').value = start ? toTimeInput(start) : '';
   $('fEnd').value = e && e.ends_at ? toTimeInput(new Date(e.ends_at)) : '';
   $('fLoc').value = e ? e.location || '' : '';
+  $('fCap').value = e && e.capacity ? e.capacity : '';
+  $('fDeadline').value = e && e.registration_deadline && !duplicate
+    ? `${toDateInput(new Date(e.registration_deadline))}T${toTimeInput(new Date(e.registration_deadline))}` : '';
   $('fDesc').value = e ? e.description || '' : '';
   $('fMsg').value = e ? e.success_message || '' : '';
   $('fTheme').value = e ? e.theme : 'calm';
-  $('fOpen').checked = e ? e.is_open : true;
+  $('fStatus').value = !e || duplicate ? 'aberto' : e.cancelled ? 'cancelado' : e.is_open ? 'aberto' : 'encerrado';
   $('edErr').hidden = true;
   $('editor').hidden = false;
   $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
   $('fTitle').focus();
+}
+
+function eventPayload(e, overrides = {}) {
+  return {
+    p_id: e.id, p_slug: e.slug, p_title: e.title, p_starts_at: e.starts_at, p_ends_at: e.ends_at, p_location: e.location,
+    p_description: e.description, p_success_message: e.success_message, p_theme: e.theme, p_is_open: e.is_open,
+    p_capacity: e.capacity, p_registration_deadline: e.registration_deadline, p_cancelled: e.cancelled, ...overrides,
+  };
 }
 
 async function saveEvent(ev) {
@@ -385,27 +661,35 @@ async function saveEvent(ev) {
     return;
   }
   const startsAt = new Date(`${$('fDate').value}T${$('fStart').value}`);
-  let endsAt = $('fEnd').value ? new Date(`${$('fDate').value}T${$('fEnd').value}`) : null;
+  const endsAt = $('fEnd').value ? new Date(`${$('fDate').value}T${$('fEnd').value}`) : null;
   if (endsAt && endsAt <= startsAt) endsAt.setDate(endsAt.getDate() + 1);
+  const cap = parseInt($('fCap').value, 10);
+  const status = $('fStatus').value;
   const prev = adminEvents.find((x) => x.id === editingId);
+  const slugValue = prev ? prev.slug : makeSlug(title);
   $('saveBtn').disabled = true;
   try {
     await rpc('presence_admin_save_event', {
-      p_id: editingId,
-      p_slug: prev ? prev.slug : makeSlug(title),
-      p_title: title,
-      p_starts_at: startsAt.toISOString(),
-      p_ends_at: endsAt ? endsAt.toISOString() : null,
-      p_location: $('fLoc').value.trim() || null,
-      p_description: $('fDesc').value.trim() || null,
-      p_success_message: $('fMsg').value.trim() || null,
-      p_theme: $('fTheme').value,
-      p_is_open: $('fOpen').checked,
+      p_id: editingId, p_slug: slugValue, p_title: title,
+      p_starts_at: startsAt.toISOString(), p_ends_at: endsAt ? endsAt.toISOString() : null,
+      p_location: $('fLoc').value.trim() || null, p_description: $('fDesc').value.trim() || null,
+      p_success_message: $('fMsg').value.trim() || null, p_theme: $('fTheme').value,
+      p_is_open: status === 'aberto', p_cancelled: status === 'cancelado',
+      p_capacity: cap > 0 ? cap : null,
+      p_registration_deadline: $('fDeadline').value ? new Date($('fDeadline').value).toISOString() : null,
     });
+    const wasNew = !editingId;
     $('editor').hidden = true;
-    toast(editingId ? 'Evento atualizado' : 'Evento criado — já pode copiar o link');
-    adminEvents = await rpc('presence_admin_list', {});
-    renderList();
+    await reloadEvents();
+    if (wasNew) {
+      lastCreated = adminEvents.find((x) => x.slug === slugValue);
+      if (lastCreated) {
+        $('createdName').textContent = `${lastCreated.title} · ${fmtDay(new Date(lastCreated.starts_at))} · ${eventTime(lastCreated)}`;
+        $('createdUrl').textContent = eventLink(lastCreated);
+        $('created').hidden = false;
+        $('created').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else toast('Evento atualizado');
   } catch {
     $('edErr').textContent = 'Não foi possível salvar. Tente de novo.';
     $('edErr').hidden = false;
@@ -416,192 +700,45 @@ async function saveEvent(ev) {
 
 async function toggleOpen(e) {
   try {
-    await rpc('presence_admin_save_event', {
-      p_id: e.id, p_slug: e.slug, p_title: e.title, p_starts_at: e.starts_at, p_ends_at: e.ends_at, p_location: e.location,
-      p_description: e.description, p_success_message: e.success_message, p_theme: e.theme, p_is_open: !e.is_open,
-    });
-    toast(e.is_open ? 'Inscrições fechadas' : 'Inscrições abertas');
-    adminEvents = await rpc('presence_admin_list', {});
-    renderList();
+    await rpc('presence_admin_save_event', eventPayload(e, { p_is_open: !e.is_open }));
+    toast(e.is_open ? 'Inscrições encerradas' : 'Inscrições reabertas');
+    await reloadEvents();
   } catch { toast('Não foi possível mudar.'); }
 }
 
 async function deleteEvent(e) {
-  if (!confirm(`Excluir "${e.title}" e as ${e.rsvps.length} confirmação(ões)? O link deixa de funcionar.`)) return;
-  try { await rpc('presence_admin_delete', { p_event_id: e.id, p_rsvp_id: null }); toast('Evento excluído'); adminEvents = await rpc('presence_admin_list', {}); renderList(); }
+  if (!confirm(`Excluir "${e.title}" e as ${e.rsvps.length} inscrição(ões)? O link deixa de funcionar.`)) return;
+  try { await rpc('presence_admin_delete', { p_event_id: e.id, p_rsvp_id: null }); toast('Evento excluído'); await reloadEvents(); }
   catch { toast('Não foi possível excluir.'); }
 }
 
 async function deleteRsvp(r) {
-  if (!confirm(`Tirar ${r.full_name} (${r.company}) da lista?`)) return;
-  try { await rpc('presence_admin_delete', { p_event_id: null, p_rsvp_id: r.id }); toast('Confirmação excluída'); adminEvents = await rpc('presence_admin_list', {}); renderList(); }
+  if (!confirm(`Excluir a inscrição de ${r.full_name} (${r.company})?`)) return;
+  try { await rpc('presence_admin_delete', { p_event_id: null, p_rsvp_id: r.id }); toast('Inscrição excluída'); await reloadEvents(); }
   catch { toast('Não foi possível excluir.'); }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  $('loginForm').addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    adminCode = $('code').value.trim().toUpperCase();
-    if (!adminCode) return;
-    $('loginErr').hidden = true;
-    $('loginBtn').disabled = true;
-    saveCode(adminCode);
-    await openPanel();
-    $('loginBtn').disabled = false;
-  });
-  $('newBtn').addEventListener('click', () => openEditor(null));
-  $('cancelBtn').addEventListener('click', () => { $('editor').hidden = true; });
-  $('editor').addEventListener('submit', saveEvent);
-  $('outBtn').addEventListener('click', () => { saveCode(''); adminCode = ''; clearInterval(refreshTimer); $('code').value = ''; show('login'); });
+$('loginForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  adminCode = $('code').value.trim().toUpperCase();
+  if (!adminCode) return;
+  $('loginErr').hidden = true;
+  $('loginBtn').disabled = true;
+  saveCode(adminCode);
+  await openPanel();
+  $('loginBtn').disabled = false;
 });
-</script>
-<script>
-const SUPABASE_URL = 'https://zpcwiiwhqjppewzxwegg.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_Eab1bvYUdYoFDfUj5cBF_g_MAJbDB32';
-const API = window.DAJ_PRESENCE_API || SUPABASE_URL + '/rest/v1';
-const headers = { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' };
+$('newBtn').addEventListener('click', () => openEditor(null));
+$('cancelBtn').addEventListener('click', () => { $('editor').hidden = true; });
+$('editor').addEventListener('submit', saveEvent);
+$('outBtn').addEventListener('click', () => { saveCode(''); adminCode = ''; clearInterval(refreshTimer); $('code').value = ''; show('login'); });
+for (const id of ['q', 'fltDate', 'fltStatus']) $(id).addEventListener('input', renderList);
+$('createdCopy').addEventListener('click', () => lastCreated && copyLink(lastCreated));
+$('createdWhats').addEventListener('click', () => lastCreated && shareWhats(lastCreated));
+$('createdSee').addEventListener('click', () => { const s = lastCreated && $('ev-' + lastCreated.id); if (s) s.scrollIntoView({ behavior: 'smooth' }); });
+$('createdClose').addEventListener('click', () => { $('created').hidden = true; });
 
-const $ = (id) => document.getElementById(id);
-const slug = new URLSearchParams(location.search).get('e') || '';
-let event = null;
-
-const pad = (n) => String(n).padStart(2, '0');
-const fmtDate = (d) => d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).replace(/^./, (c) => c.toUpperCase());
-const fmtTime = (d) => `${pad(d.getHours())}h${pad(d.getMinutes())}`;
-const digits = (v) => v.replace(/\D/g, '');
-
-function maskPhone(v) {
-  const d = digits(v).replace(/^55(?=\d{10,11}$)/, '').slice(0, 11);
-  if (d.length <= 2) return d.length ? `(${d}` : '';
-  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
-  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
-  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
-}
-
-function show(which) {
-  for (const id of ['loading', 'form', 'done', 'closed', 'login', 'panel']) $(id).hidden = id !== which;
-}
-
-function stop(title, msg, heading) {
-  $('title').textContent = heading || 'Confirmação de presença';
-  $('closedTitle').textContent = title;
-  $('closedMsg').textContent = msg;
-  show('closed');
-}
-
-function remember(data) {
-  try { localStorage.setItem('daj-presenca-' + slug, JSON.stringify(data)); } catch {}
-}
-function recall() {
-  try { return JSON.parse(localStorage.getItem('daj-presenca-' + slug) || 'null'); } catch { return null; }
-}
-
-function calendarUrl() {
-  const start = new Date(event.starts_at);
-  const end = event.ends_at ? new Date(event.ends_at) : new Date(start.getTime() + 2 * 3600e3);
-  const z = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-  const p = new URLSearchParams({ action: 'TEMPLATE', text: event.title, dates: `${z(start)}/${z(end)}`, details: event.description || '', location: event.location || '' });
-  return 'https://calendar.google.com/calendar/render?' + p.toString();
-}
-
-function showDone(data) {
-  $('doneMsg').textContent = event.success_message || `Obrigado, ${data.full_name.split(' ')[0]}! Te esperamos no dia ${new Date(event.starts_at).toLocaleDateString('pt-BR')} às ${fmtTime(new Date(event.starts_at))}.`;
-  $('doneSummary').innerHTML = '';
-  for (const [k, v] of [['Nome', data.full_name], ['Empresa', data.company], ['Função', data.job_title]]) {
-    const line = document.createElement('div');
-    line.append(k + ': ');
-    const b = document.createElement('b');
-    b.textContent = v;
-    line.append(b);
-    $('doneSummary').append(line);
-  }
-  $('calLink').href = calendarUrl();
-  show('done');
-}
-
-async function load() {
-  // Sem código de evento no link = área do gestor.
-  if (!slug) { startAdmin(); return; }
-  if (!/^[a-z0-9-]{3,80}$/.test(slug)) {
-    stop('Link incompleto', 'Abra o link exatamente como recebeu da equipe DAJ.');
-    return;
-  }
-  try {
-    const r = await fetch(`${API}/presence_events?slug=eq.${slug}&select=id,title,starts_at,ends_at,location,description,success_message,theme,is_open`, { headers });
-    if (!r.ok) throw new Error(r.status);
-    event = (await r.json())[0] || null;
-  } catch {
-    stop('Sem conexão', 'Não foi possível abrir o evento agora. Verifique a internet e tente de novo.');
-    return;
-  }
-  if (!event) {
-    stop('Evento não encontrado', 'Este link não existe mais ou foi digitado errado. Peça o link novamente à equipe DAJ.');
-    return;
-  }
-  document.body.dataset.theme = event.theme || 'calm';
-  const metaTheme = getComputedStyle(document.body).getPropertyValue('--band').trim();
-  document.querySelector('meta[name="theme-color"]').content = metaTheme;
-  document.title = `${event.title} · Confirmação de Presença`;
-  $('title').textContent = event.title;
-  const start = new Date(event.starts_at);
-  $('date').textContent = fmtDate(start);
-  $('time').textContent = fmtTime(start) + (event.ends_at ? ' às ' + fmtTime(new Date(event.ends_at)) : '');
-  if (event.location) $('loc').textContent = event.location;
-  else { $('loc').hidden = true; $('locLabel').hidden = true; }
-  $('when').hidden = false;
-  if (event.description) { $('desc').textContent = event.description; $('desc').hidden = false; }
-
-  const prev = recall();
-  if (prev) { showDone(prev); return; }
-  if (!event.is_open) { stop('Inscrições encerradas', 'As confirmações para este evento já foram encerradas. Fale com a equipe DAJ se precisar de ajuda.', event.title); return; }
-  show('form');
-}
-
-$('phone').addEventListener('input', (e) => { e.target.value = maskPhone(e.target.value); });
-
-$('form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const data = {
-    event_id: event.id,
-    company: $('company').value.trim(),
-    job_title: $('job').value.trim(),
-    full_name: $('name').value.trim().replace(/\s+/g, ' '),
-    phone: digits($('phone').value).replace(/^55(?=\d{10,11}$)/, ''),
-  };
-  const bad = [];
-  for (const [id, ok] of [['company', data.company], ['job', data.job_title], ['name', data.full_name], ['phone', /^\d{10,11}$/.test(data.phone)]]) {
-    $(id).setAttribute('aria-invalid', ok ? 'false' : 'true');
-    if (!ok) bad.push(id);
-  }
-  if (bad.length) {
-    $('err').textContent = bad.includes('phone') && bad.length === 1 ? 'Confira o telefone com DDD.' : 'Preencha todos os campos.';
-    $('err').hidden = false;
-    $(bad[0]).focus();
-    return;
-  }
-  $('err').hidden = true;
-  $('submit').disabled = true;
-  $('submit').textContent = 'Enviando…';
-  try {
-    const r = await fetch(`${API}/presence_rsvps`, { method: 'POST', headers: { ...headers, Prefer: 'return=minimal' }, body: JSON.stringify(data) });
-    if (r.status === 409) { remember(data); showDone(data); return; }
-    if (!r.ok) {
-      // Evento fechado no meio do caminho: a regra do banco recusa.
-      if (r.status === 401 || r.status === 403) { stop('Inscrições encerradas', 'As confirmações para este evento foram encerradas.', event.title); return; }
-      throw new Error(r.status);
-    }
-    remember(data);
-    showDone(data);
-  } catch {
-    $('err').textContent = 'Não foi possível enviar. Verifique a internet e toque em confirmar de novo.';
-    $('err').hidden = false;
-  } finally {
-    $('submit').disabled = false;
-    $('submit').textContent = 'Confirmar presença';
-  }
-});
-
-load();
+if (slug) loadGuest(); else startAdmin();
 </script>
 </body>
 </html>

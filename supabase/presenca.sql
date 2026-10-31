@@ -79,6 +79,57 @@ begin
 end $$;
 
 -- ================================================================
+-- V2: vagas, prazo, cancelamento, proteção contra envio em massa
+-- (pode rodar mais de uma vez; não apaga nada)
+-- ================================================================
+
+alter table public.presence_events add column if not exists capacity int null check (capacity is null or capacity > 0);
+alter table public.presence_events add column if not exists registration_deadline timestamptz null;
+alter table public.presence_events add column if not exists cancelled boolean not null default false;
+
+-- Situação de inscrição de um evento: ok | fechado | cancelado | prazo | lotado | inexistente
+create or replace function public.presence_registration_state(p_event_id uuid)
+returns text language sql stable security definer set search_path = public as $$
+  select case
+    when e.id is null then 'inexistente'
+    when e.cancelled then 'cancelado'
+    when not e.is_open then 'fechado'
+    when e.registration_deadline is not null and now() > e.registration_deadline then 'prazo'
+    when e.capacity is not null and (select count(*) from public.presence_rsvps r where r.event_id = e.id) >= e.capacity then 'lotado'
+    else 'ok' end
+  from (select 1) one left join public.presence_events e on e.id = p_event_id;
+$$;
+grant execute on function public.presence_registration_state(uuid) to anon, authenticated;
+
+-- Página do convidado: só os dados publicáveis do evento + situação.
+create or replace function public.presence_public_event(p_slug text)
+returns jsonb language sql stable security definer set search_path = public as $$
+  select jsonb_build_object('id', e.id, 'slug', e.slug, 'title', e.title, 'starts_at', e.starts_at, 'ends_at', e.ends_at,
+    'location', e.location, 'description', e.description, 'success_message', e.success_message, 'theme', e.theme,
+    'state', public.presence_registration_state(e.id))
+  from public.presence_events e where e.slug = p_slug;
+$$;
+grant execute on function public.presence_public_event(text) to anon, authenticated;
+
+drop policy if exists "Presence rsvps: anyone can confirm" on public.presence_rsvps;
+create policy "Presence rsvps: anyone can confirm"
+on public.presence_rsvps for insert to anon, authenticated
+with check (public.presence_registration_state(event_id) = 'ok');
+
+-- Freio contra robô: no máximo 30 confirmações por minuto no mesmo evento.
+create or replace function public.presence_rsvps_throttle()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if (select count(*) from public.presence_rsvps where event_id = new.event_id and created_at > now() - interval '1 minute') >= 30 then
+    raise exception 'muitas_inscricoes' using errcode = '54000';
+  end if;
+  return new;
+end $$;
+drop trigger if exists presence_rsvps_throttle on public.presence_rsvps;
+create trigger presence_rsvps_throttle before insert on public.presence_rsvps
+for each row execute function public.presence_rsvps_throttle();
+
+-- ================================================================
 -- PAINEL DO GESTOR na página pública (code-clarity-engine)
 -- Entrada por código de acesso: só o hash fica no banco.
 -- Funções security definer: a página nunca lê as tabelas direto.
@@ -115,20 +166,23 @@ begin
   ), '[]'::jsonb);
 end $$;
 
+drop function if exists public.presence_admin_save_event(text, uuid, text, text, timestamptz, timestamptz, text, text, text, text, boolean);
 create or replace function public.presence_admin_save_event(
   p_code text, p_id uuid, p_slug text, p_title text, p_starts_at timestamptz, p_ends_at timestamptz,
-  p_location text, p_description text, p_success_message text, p_theme text, p_is_open boolean)
+  p_location text, p_description text, p_success_message text, p_theme text, p_is_open boolean,
+  p_capacity int, p_registration_deadline timestamptz, p_cancelled boolean)
 returns jsonb language plpgsql security definer set search_path = public as $$
 declare v public.presence_events;
 begin
   if not public.presence_admin_ok(p_code) then raise exception 'codigo_invalido' using errcode = '28000'; end if;
   if p_id is null then
-    insert into public.presence_events (slug, title, starts_at, ends_at, location, description, success_message, theme, is_open, created_by)
-    values (p_slug, p_title, p_starts_at, p_ends_at, p_location, p_description, p_success_message, p_theme, p_is_open, null)
+    insert into public.presence_events (slug, title, starts_at, ends_at, location, description, success_message, theme, is_open, capacity, registration_deadline, cancelled, created_by)
+    values (p_slug, p_title, p_starts_at, p_ends_at, p_location, p_description, p_success_message, p_theme, p_is_open, p_capacity, p_registration_deadline, coalesce(p_cancelled, false), null)
     returning * into v;
   else
     update public.presence_events set title = p_title, starts_at = p_starts_at, ends_at = p_ends_at, location = p_location,
-      description = p_description, success_message = p_success_message, theme = p_theme, is_open = p_is_open
+      description = p_description, success_message = p_success_message, theme = p_theme, is_open = p_is_open,
+      capacity = p_capacity, registration_deadline = p_registration_deadline, cancelled = coalesce(p_cancelled, false)
     where id = p_id returning * into v;
   end if;
   return to_jsonb(v);
@@ -144,7 +198,7 @@ end $$;
 
 revoke all on function public.presence_admin_ok(text) from public, anon, authenticated;
 grant execute on function public.presence_admin_list(text) to anon, authenticated;
-grant execute on function public.presence_admin_save_event(text, uuid, text, text, timestamptz, timestamptz, text, text, text, text, boolean) to anon, authenticated;
+grant execute on function public.presence_admin_save_event(text, uuid, text, text, timestamptz, timestamptz, text, text, text, text, boolean, int, timestamptz, boolean) to anon, authenticated;
 grant execute on function public.presence_admin_delete(text, uuid, uuid) to anon, authenticated;
 
 notify pgrst, 'reload schema';
