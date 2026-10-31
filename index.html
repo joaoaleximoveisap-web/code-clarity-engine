@@ -6,7 +6,7 @@
 // Endereço oficial (confirmacaodeeventos.lovable.app): carrega sempre a versão mais nova publicada no GitHub,
 // para nenhuma atualização depender de publicar de novo no Lovable. Se o GitHub falhar, usa esta cópia.
 (function () {
-  if (window.__dajLatest || !/.lovable.app$/.test(location.hostname)) return;
+  if (window.__dajLatest || !/\.lovable\.app$/.test(location.hostname)) return;
   window.__dajSwap = true;
   document.documentElement.style.visibility = 'hidden';
   var fallback = function () { window.__dajSwap = false; document.documentElement.style.visibility = ''; if (window.__dajStart) window.__dajStart(); };
@@ -16,7 +16,7 @@
     .then(function (html) {
       clearTimeout(timer);
       document.open();
-      document.write(html.replace('<head>', '<head><script>window.__dajLatest=1</script>'));
+      document.write(html.replace('<head>', '<head><script>window.__dajLatest=1<\/script>'));
       document.close();
     })
     .catch(function () { clearTimeout(timer); fallback(); });
@@ -151,7 +151,7 @@ td.x button:hover{color:var(--flag)}
     <dl class="when" id="when" hidden>
       <dt>Data</dt><dd id="date"></dd>
       <dt>Horário</dt><dd id="time"></dd>
-      <dt id="locLabel">Local</dt><dd id="loc"></dd>
+      <dt>Endereço</dt><dd id="loc"></dd>
     </dl>
     <p class="desc" id="desc" hidden></p>
   </div>
@@ -162,10 +162,10 @@ td.x button:hover{color:var(--flag)}
     <p class="loading" id="loading">Carregando…</p>
 
     <form id="form" novalidate hidden>
-      <label><span>Nome completo</span><input id="name" autocomplete="name" maxlength="160" required></label>
-      <label><span>Empresa</span><input id="company" autocomplete="organization" maxlength="160" required></label>
-      <label><span>Cargo ou função na empresa</span><input id="job" autocomplete="organization-title" maxlength="120" placeholder="Ex.: Corretor, Diretor, Gerente" required></label>
-      <label><span>Telefone com WhatsApp</span><input id="phone" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(43) 99999-9999" maxlength="16" required></label>
+      <label><span>Nome da imobiliária / empresa</span><input id="company" autocomplete="organization" autocapitalize="words" enterkeyhint="next" maxlength="160" placeholder="Ex.: Imobiliária Palhano" required></label>
+      <label><span>Seu nome</span><input id="name" autocomplete="name" autocapitalize="words" enterkeyhint="next" maxlength="160" placeholder="Nome e sobrenome" required></label>
+      <label><span>Sua função</span><input id="job" autocomplete="organization-title" autocapitalize="sentences" enterkeyhint="next" maxlength="120" placeholder="Ex.: Corretor, Diretor, Gerente" required></label>
+      <label><span>Telefone (WhatsApp)</span><input id="phone" type="tel" inputmode="tel" autocomplete="tel-national" enterkeyhint="send" placeholder="(43) 99999-9999" maxlength="16" required></label>
       <div class="hp" aria-hidden="true"><label>Site<input id="website" tabindex="-1" autocomplete="off"></label></div>
       <p class="err" id="err" role="alert" hidden></p>
       <button type="submit" id="submit">Confirmar presença</button>
@@ -212,7 +212,7 @@ td.x button:hover{color:var(--flag)}
       <p class="totals" id="totals"></p>
 
       <section class="created" id="created" hidden>
-        <h2>Evento criado</h2>
+        <h2>Evento criado — link pronto para enviar</h2>
         <p class="note" id="createdName"></p>
         <p class="url" id="createdUrl"></p>
         <div class="acts">
@@ -336,7 +336,7 @@ function showDone(data, already) {
     ? `Este telefone já está confirmado neste evento, ${data.full_name.split(' ')[0]}. Não precisa enviar de novo.`
     : event.success_message || 'Sua inscrição foi realizada com sucesso.';
   $('doneSummary').innerHTML = '';
-  for (const [k, v] of [['Evento', event.title], ['Data', fmtLongDate(start)], ['Horário', eventTime(event)], ['Nome', data.full_name]]) {
+  for (const [k, v] of [['Evento', event.title], ['Data', fmtLongDate(start)], ['Horário', eventTime(event)], ['Endereço', event.location || 'Endereço a confirmar'], ['Nome', data.full_name]]) {
     const line = document.createElement('div');
     line.append(k + ': ');
     const b = document.createElement('b');
@@ -373,8 +373,7 @@ async function loadGuest() {
   $('title').textContent = event.title;
   $('date').textContent = fmtLongDate(new Date(event.starts_at));
   $('time').textContent = eventTime(event);
-  $('loc').hidden = $('locLabel').hidden = !event.location;
-  $('loc').textContent = event.location || '';
+  $('loc').textContent = event.location || 'Endereço a confirmar';
   $('when').hidden = false;
   $('desc').hidden = !event.description;
   $('desc').textContent = event.description || '';
@@ -389,7 +388,7 @@ $('phone').addEventListener('input', (e) => { e.target.value = maskPhone(e.targe
 $('retryBtn').addEventListener('click', loadGuest);
 $('againBtn').addEventListener('click', () => {
   forget();
-  for (const id of ['name', 'company', 'job', 'phone']) $(id).value = '';
+  for (const id of ['company', 'name', 'job', 'phone']) $(id).value = '';
   // Busca a situação de novo: o evento pode ter lotado ou fechado nesse meio-tempo.
   loadGuest();
 });
@@ -405,7 +404,7 @@ $('form').addEventListener('submit', async (e) => {
     phone: digits($('phone').value).replace(/^55(?=\d{10,11}$)/, ''),
   };
   const bad = [];
-  for (const [id, ok] of [['name', data.full_name], ['company', data.company], ['job', data.job_title], ['phone', /^\d{10,11}$/.test(data.phone)]]) {
+  for (const [id, ok] of [['company', data.company], ['name', data.full_name], ['job', data.job_title], ['phone', /^\d{10,11}$/.test(data.phone)]]) {
     $(id).setAttribute('aria-invalid', ok ? 'false' : 'true');
     if (!ok) bad.push(id);
   }
@@ -561,7 +560,7 @@ function eventBlock(e, isPast, rsvpQuery) {
   const time = fmtTime(start) + (e.ends_at ? '–' + fmtTime(new Date(e.ends_at)) : '');
   const n = e.rsvps.length;
   const [sKey, sLabel] = statusOf(e);
-  const extra = [e.location || 'Sem endereço', e.capacity ? `${e.capacity} vagas` : null,
+  const extra = [e.location || 'Endereço a confirmar', e.capacity ? `${e.capacity} vagas` : null,
     e.registration_deadline ? `inscrições até ${fmtStamp(e.registration_deadline)}` : null].filter(Boolean).join(' · ');
   const head = el('div', { class: 'evhead' },
     el('div', { class: 'evwhen' }, el('small', {}, fmtWeek(start)), el('b', {}, `${fmtDay(start)} · ${time}`)),
@@ -607,7 +606,7 @@ async function copyLink(e) {
 
 function shareWhats(e) {
   const start = new Date(e.starts_at);
-  const text = `${e.title} — ${start.toLocaleDateString('pt-BR')} às ${fmtTime(start)}${e.location ? ` · ${e.location}` : ''}\nConfirme sua presença: ${eventLink(e)}`;
+  const text = `${e.title}\n${start.toLocaleDateString('pt-BR')} às ${fmtTime(start)}\n${e.location || 'Endereço a confirmar'}\n\nConfirme sua presença: ${eventLink(e)}`;
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
 }
 
@@ -709,6 +708,7 @@ async function saveEvent(ev) {
         $('createdUrl').textContent = eventLink(lastCreated);
         $('created').hidden = false;
         $('created').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        navigator.clipboard.writeText(eventLink(lastCreated)).then(() => toast('Evento criado — link copiado'), () => {});
       }
     } else toast('Evento atualizado');
   } catch {
