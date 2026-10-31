@@ -2,6 +2,26 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<script>
+// Endereço oficial (confirmacaodeeventos.lovable.app): carrega sempre a versão mais nova publicada no GitHub,
+// para nenhuma atualização depender de publicar de novo no Lovable. Se o GitHub falhar, usa esta cópia.
+(function () {
+  if (window.__dajLatest || !/.lovable.app$/.test(location.hostname)) return;
+  window.__dajSwap = true;
+  document.documentElement.style.visibility = 'hidden';
+  var fallback = function () { window.__dajSwap = false; document.documentElement.style.visibility = ''; if (window.__dajStart) window.__dajStart(); };
+  var timer = setTimeout(fallback, 6000);
+  fetch('https://joaoaleximoveisap-web.github.io/code-clarity-engine/index.html?v=' + Date.now(), { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
+    .then(function (html) {
+      clearTimeout(timer);
+      document.open();
+      document.write(html.replace('<head>', '<head><script>window.__dajLatest=1</script>'));
+      document.close();
+    })
+    .catch(function () { clearTimeout(timer); fallback(); });
+})();
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Confirmação de Presença · DAJ</title>
 <meta name="description" content="Confirme sua presença no evento DAJ Empreendimentos.">
@@ -119,6 +139,7 @@ td.x button:hover{color:var(--flag)}
 }
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:4px;font-size:15px;z-index:9}
 [hidden]{display:none!important}
+#lovable-badge{display:none!important}
 </style>
 </head>
 <body data-theme="calm">
@@ -738,7 +759,8 @@ $('createdWhats').addEventListener('click', () => lastCreated && shareWhats(last
 $('createdSee').addEventListener('click', () => { const s = lastCreated && $('ev-' + lastCreated.id); if (s) s.scrollIntoView({ behavior: 'smooth' }); });
 $('createdClose').addEventListener('click', () => { $('created').hidden = true; });
 
-if (slug) loadGuest(); else startAdmin();
+window.__dajStart = () => (slug ? loadGuest() : startAdmin());
+if (!window.__dajSwap) window.__dajStart();
 </script>
 </body>
 </html>
