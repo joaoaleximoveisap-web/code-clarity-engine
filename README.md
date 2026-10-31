@@ -1,7 +1,12 @@
 # Confirmação de Presença · DAJ
 
-Página pública onde o convidado confirma presença num evento DAJ (empresa, função, nome e telefone).
+Uma página só, no visual da DAJ:
 
-- Link de cada evento: `https://joaoaleximoveisap-web.github.io/code-clarity-engine/?e=<codigo-do-evento>`
-- Os eventos são criados e as confirmações aparecem no CRM DAJ, em **Meu Espaço → Confirmação de Presença** (só João Alex).
-- Os dados ficam no banco do CRM (tabelas `presence_events` e `presence_rsvps`).
+- **Sem `?e=` no link → Área do gestor.** Entra com o código de acesso, cria eventos (nome, data, horário,
+  endereço, texto, visual), copia o link de cada um ou envia no WhatsApp, e vê quem confirmou em cada evento.
+- **Com `?e=<codigo-do-evento>` → página do convidado.** A pessoa preenche empresa, função, nome e telefone.
+
+Os dados ficam no banco do CRM DAJ (`presence_events`, `presence_rsvps`). O SQL está em `supabase/presenca.sql`
+(o hash do código de acesso não fica no repositório).
+
+Endereço: https://joaoaleximoveisap-web.github.io/code-clarity-engine/ (também publica pelo Lovable).

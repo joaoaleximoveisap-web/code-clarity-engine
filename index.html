@@ -61,6 +61,54 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--warm);outline-offse
 .summary b{color:var(--ink);font-weight:600}
 .loading{color:var(--muted)}
 footer{text-align:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:0 20px calc(28px + env(safe-area-inset-bottom))}
+/* Painel do gestor: lista corrida, sem cards. */
+body.admin .wrap{max-width:1040px}
+body.admin header .wrap{padding-bottom:26px}
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:26px}
+.bar p{margin:0;color:var(--muted);font-size:15px}
+.bar .acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{width:auto;margin:0;padding:12px 18px;font-size:11px}
+.btn.line{background:transparent;color:var(--ink);border:1px solid var(--warm)}
+.ev{margin:0 0 44px}
+.ev.past{opacity:.62}
+.evhead{display:grid;grid-template-columns:auto 1fr auto;gap:6px 22px;align-items:end;border-bottom:2px solid var(--ink);padding-bottom:10px}
+.evwhen{font-variant-numeric:tabular-nums;line-height:1.25}
+.evwhen small{display:block;font-size:11px;letter-spacing:.2em;color:var(--muted);font-weight:600}
+.evwhen b{font-size:19px}
+.evname{min-width:0}
+.evname h2{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:17px;letter-spacing:.03em;line-height:1.35;margin:0}
+.evname p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+.evcount{text-align:right;line-height:1}
+.evcount b{font-size:34px;font-variant-numeric:tabular-nums}
+.evcount small{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+.evacts{display:flex;flex-wrap:wrap;gap:4px 16px;padding:10px 0 6px}
+.evacts a,.evacts button{all:unset;cursor:pointer;font-size:14px;font-weight:600;color:var(--warm);padding:4px 0}
+.evacts a:hover,.evacts button:hover{color:var(--ink);text-decoration:underline}
+.evacts .del{color:var(--flag)}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:15px;min-width:640px}
+th{text-align:left;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:8px 10px 8px 0;border-bottom:1px solid var(--line)}
+td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td.n{color:var(--muted);font-variant-numeric:tabular-nums;width:28px}
+td.nm{font-weight:600}
+td.mu{color:var(--muted)}
+td.tel{white-space:nowrap;font-variant-numeric:tabular-nums}
+td.tel a{color:var(--ink)}
+td.x button{all:unset;cursor:pointer;color:var(--muted);font-size:18px;line-height:1}
+td.x button:hover{color:var(--flag)}
+.empty{color:var(--muted);padding:12px 0;margin:0}
+.editor{border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);padding:22px 0;margin:0 0 40px}
+.editor h2{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:17px;margin:0 0 18px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.grid .full{grid-column:1/-1}.grid .half{grid-column:span 2}
+select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:4px;padding:13px 14px;width:100%}
+textarea{min-height:92px;resize:vertical}
+.check{display:flex;align-items:center;gap:10px;grid-column:1/-1}
+.check input{width:20px;height:20px}
+.check span{font-size:15px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:400}
+.editor .acts{display:flex;gap:10px;margin-top:20px}
+@media (max-width:720px){.grid{grid-template-columns:1fr 1fr}.grid .half{grid-column:1/-1}.evhead{grid-template-columns:1fr auto}.evwhen{grid-column:1/-1}}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:4px;font-size:15px;z-index:9}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -101,6 +149,45 @@ footer{text-align:center;font-size:11px;letter-spacing:.2em;text-transform:upper
       <div class="links"><a id="calLink" target="_blank" rel="noopener">Adicionar à minha agenda</a></div>
     </section>
 
+    <section id="login" hidden>
+      <form id="loginForm" novalidate>
+        <label><span>Código de acesso do gestor</span><input id="code" autocomplete="current-password" type="password" required></label>
+        <p class="err" id="loginErr" role="alert" hidden></p>
+        <button type="submit" id="loginBtn">Entrar</button>
+        <p class="note">Você digita uma vez; este navegador lembra.</p>
+      </form>
+    </section>
+
+    <section id="panel" hidden>
+      <div class="bar">
+        <p id="totals"></p>
+        <div class="acts">
+          <button type="button" class="btn" id="newBtn">+ Novo evento</button>
+          <button type="button" class="btn line" id="outBtn">Sair</button>
+        </div>
+      </div>
+      <form class="editor" id="editor" novalidate hidden>
+        <h2 id="edTitle">Novo evento</h2>
+        <div class="grid">
+          <label class="full"><span>Nome do evento *</span><input id="fTitle" maxlength="140" placeholder="Ex.: Café com Imobiliárias — The One"></label>
+          <label><span>Data *</span><input id="fDate" type="date"></label>
+          <label><span>Início *</span><input id="fStart" type="time"></label>
+          <label><span>Término</span><input id="fEnd" type="time"></label>
+          <label><span>Visual da página</span><select id="fTheme"><option value="calm">Calm (bege DAJ)</option><option value="claro">Claro</option><option value="escuro">Escuro</option></select></label>
+          <label class="full"><span>Endereço / local</span><input id="fLoc" maxlength="200" placeholder="Ex.: Stand The One — Gleba Palhano, Londrina"></label>
+          <label class="half"><span>Texto do convite</span><textarea id="fDesc" maxlength="2000" placeholder="Aparece abaixo do nome do evento"></textarea></label>
+          <label class="half"><span>Mensagem depois de confirmar</span><textarea id="fMsg" maxlength="500" placeholder="Ex.: Presença confirmada! Te esperamos às 19h."></textarea></label>
+          <label class="check"><input id="fOpen" type="checkbox" checked><span>Inscrições abertas</span></label>
+        </div>
+        <p class="err" id="edErr" role="alert" hidden></p>
+        <div class="acts">
+          <button type="submit" class="btn" id="saveBtn">Criar evento</button>
+          <button type="button" class="btn line" id="cancelBtn">Cancelar</button>
+        </div>
+      </form>
+      <div id="list"></div>
+    </section>
+
     <section class="state" id="closed" hidden>
       <h2 id="closedTitle">Inscrições encerradas</h2>
       <p id="closedMsg">As confirmações para este evento já foram encerradas. Fale com a equipe DAJ se precisar de ajuda.</p>
@@ -109,6 +196,265 @@ footer{text-align:center;font-size:11px;letter-spacing:.2em;text-transform:upper
 </main>
 <footer>DAJ Empreendimentos</footer>
 
+<script>
+// Área do gestor: abre quando o link não tem ?e=. Tudo passa por funções do banco que conferem o código.
+const ADMIN_KEY = 'daj-presenca-codigo';
+let adminCode = '';
+let adminEvents = [];
+let editingId = null;
+let refreshTimer = null;
+
+function readCode() { try { return localStorage.getItem(ADMIN_KEY) || ''; } catch { return ''; } }
+function saveCode(v) { try { v ? localStorage.setItem(ADMIN_KEY, v) : localStorage.removeItem(ADMIN_KEY); } catch {} }
+
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.append(t);
+  setTimeout(() => t.remove(), 2600);
+}
+
+async function rpc(fn, args) {
+  const r = await fetch(`${API}/rpc/${fn}`, { method: 'POST', headers, body: JSON.stringify({ p_code: adminCode, ...args }) });
+  const text = await r.text();
+  if (!r.ok) {
+    const err = new Error(text.includes('codigo_invalido') ? 'codigo' : text.includes('PGRST202') || r.status === 404 ? 'sem_banco' : 'falha');
+    throw err;
+  }
+  return text ? JSON.parse(text) : null;
+}
+
+const eventLink = (ev) => `${location.origin}${location.pathname}?e=${encodeURIComponent(ev.slug)}`;
+const fmtDay = (d) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+const fmtWeek = (d) => d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase();
+const fmtStamp = (iso) => new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+const fmtPhone = (d) => d.length === 11 ? `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}` : d.length === 10 ? `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}` : d;
+const toDateInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const toTimeInput = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+function makeSlug(title) {
+  const base = title.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60).replace(/-+$/g, '');
+  return `${base || 'evento'}-${Math.random().toString(36).slice(2, 6)}`;
+}
+
+function el(tag, props = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === 'class') n.className = v;
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v);
+  }
+  for (const k of kids) if (k != null) n.append(k);
+  return n;
+}
+
+function startAdmin() {
+  document.body.classList.add('admin');
+  document.title = 'Área do gestor · Confirmação de Presença';
+  $('title').textContent = 'Seus eventos';
+  document.querySelector('.kicker').textContent = 'Área do gestor · Confirmação de presença';
+  adminCode = readCode();
+  if (adminCode) openPanel(); else show('login');
+}
+
+async function openPanel() {
+  try {
+    adminEvents = await rpc('presence_admin_list', {});
+  } catch (e) {
+    if (e.message === 'codigo') { saveCode(''); adminCode = ''; show('login'); $('loginErr').textContent = 'Código incorreto.'; $('loginErr').hidden = false; return; }
+    show('login');
+    $('loginErr').textContent = e.message === 'sem_banco'
+      ? 'O banco ainda não foi preparado: falta rodar o SQL da Confirmação de Presença.'
+      : 'Sem conexão. Tente de novo.';
+    $('loginErr').hidden = false;
+    return;
+  }
+  show('panel');
+  renderList();
+  clearInterval(refreshTimer);
+  // Confirmações novas aparecem sozinhas.
+  refreshTimer = setInterval(async () => {
+    if (!$('editor').hidden) return;
+    try { adminEvents = await rpc('presence_admin_list', {}); renderList(); } catch {}
+  }, 20000);
+}
+
+function renderList() {
+  const total = adminEvents.reduce((s, e) => s + e.rsvps.length, 0);
+  $('totals').textContent = `${adminEvents.length} evento(s) · ${total} confirmação(ões)`;
+  const list = $('list');
+  list.innerHTML = '';
+  if (!adminEvents.length) {
+    list.append(el('p', { class: 'empty' }, 'Nenhum evento ainda. Clique em “+ Novo evento”.'));
+    return;
+  }
+  const now = Date.now();
+  const ended = (e) => new Date(e.ends_at || e.starts_at).getTime() + 6 * 3600e3 < now;
+  const upcoming = adminEvents.filter((e) => !ended(e));
+  const past = adminEvents.filter(ended).reverse();
+  for (const e of upcoming) list.append(eventBlock(e, false));
+  if (past.length) list.append(el('p', { class: 'kicker' }, 'Eventos que já passaram'));
+  for (const e of past) list.append(eventBlock(e, true));
+}
+
+function eventBlock(e, isPast) {
+  const start = new Date(e.starts_at);
+  const time = fmtTime(start) + (e.ends_at ? '–' + fmtTime(new Date(e.ends_at)) : '');
+  const n = e.rsvps.length;
+  const head = el('div', { class: 'evhead' },
+    el('div', { class: 'evwhen' }, el('small', {}, fmtWeek(start)), el('b', {}, `${fmtDay(start)} · ${time}`)),
+    el('div', { class: 'evname' }, el('h2', {}, e.title), el('p', {}, `${e.location || 'Sem endereço'} · ${e.is_open ? 'inscrições abertas' : 'inscrições fechadas'}`)),
+    el('div', { class: 'evcount' }, el('b', {}, String(n)), el('small', {}, n === 1 ? 'confirmado' : 'confirmados')),
+  );
+  const acts = el('div', { class: 'evacts' },
+    el('button', { type: 'button', onclick: () => copyLink(e) }, 'Copiar link'),
+    el('button', { type: 'button', onclick: () => shareWhats(e) }, 'Enviar no WhatsApp'),
+    el('a', { href: eventLink(e), target: '_blank', rel: 'noopener' }, 'Abrir página'),
+    n ? el('button', { type: 'button', onclick: () => downloadCsv(e) }, 'Baixar lista') : null,
+    el('button', { type: 'button', onclick: () => toggleOpen(e) }, e.is_open ? 'Fechar inscrições' : 'Abrir inscrições'),
+    el('button', { type: 'button', onclick: () => openEditor(e) }, 'Editar'),
+    el('button', { type: 'button', class: 'del', onclick: () => deleteEvent(e) }, 'Excluir'),
+  );
+  let body;
+  if (!n) body = el('p', { class: 'empty' }, 'Ninguém confirmou ainda.');
+  else {
+    const tbody = el('tbody');
+    e.rsvps.forEach((r, i) => tbody.append(el('tr', {},
+      el('td', { class: 'n' }, String(i + 1)),
+      el('td', { class: 'nm' }, r.full_name),
+      el('td', {}, r.company),
+      el('td', { class: 'mu' }, r.job_title),
+      el('td', { class: 'tel' }, el('a', { href: `https://wa.me/55${r.phone}`, target: '_blank', rel: 'noopener' }, fmtPhone(r.phone))),
+      el('td', { class: 'mu' }, fmtStamp(r.created_at)),
+      el('td', { class: 'x' }, el('button', { type: 'button', 'aria-label': `Excluir ${r.full_name}`, onclick: () => deleteRsvp(r) }, '×')),
+    )));
+    body = el('div', { class: 'tw' }, el('table', {},
+      el('thead', {}, el('tr', {}, ...['#', 'Nome', 'Empresa', 'Função', 'Telefone', 'Confirmou', ''].map((h) => el('th', {}, h)))),
+      tbody));
+  }
+  return el('section', { class: 'ev' + (isPast ? ' past' : '') }, head, acts, body);
+}
+
+async function copyLink(e) {
+  try { await navigator.clipboard.writeText(eventLink(e)); toast('Link copiado'); }
+  catch { prompt('Copie o link:', eventLink(e)); }
+}
+
+function shareWhats(e) {
+  const start = new Date(e.starts_at);
+  const text = `${e.title} — ${start.toLocaleDateString('pt-BR')} às ${fmtTime(start)}${e.location ? ` · ${e.location}` : ''}\nConfirme sua presença: ${eventLink(e)}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+}
+
+function downloadCsv(e) {
+  const esc = (v) => `"${String(v).replace(/"/g, '""')}"`;
+  const lines = [['Nome', 'Empresa', 'Função', 'Telefone', 'Confirmou em'].join(';'),
+    ...e.rsvps.map((r) => [r.full_name, r.company, r.job_title, fmtPhone(r.phone), fmtStamp(r.created_at)].map(esc).join(';'))];
+  const a = el('a', { href: URL.createObjectURL(new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' })), download: `Presenca-${e.slug}.csv` });
+  a.click();
+}
+
+function openEditor(e) {
+  editingId = e ? e.id : null;
+  $('edTitle').textContent = e ? 'Editar evento' : 'Novo evento';
+  $('saveBtn').textContent = e ? 'Salvar alterações' : 'Criar evento';
+  const start = e ? new Date(e.starts_at) : null;
+  $('fTitle').value = e ? e.title : '';
+  $('fDate').value = start ? toDateInput(start) : '';
+  $('fStart').value = start ? toTimeInput(start) : '';
+  $('fEnd').value = e && e.ends_at ? toTimeInput(new Date(e.ends_at)) : '';
+  $('fLoc').value = e ? e.location || '' : '';
+  $('fDesc').value = e ? e.description || '' : '';
+  $('fMsg').value = e ? e.success_message || '' : '';
+  $('fTheme').value = e ? e.theme : 'calm';
+  $('fOpen').checked = e ? e.is_open : true;
+  $('edErr').hidden = true;
+  $('editor').hidden = false;
+  $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  $('fTitle').focus();
+}
+
+async function saveEvent(ev) {
+  ev.preventDefault();
+  const title = $('fTitle').value.trim();
+  if (!title || !$('fDate').value || !$('fStart').value) {
+    $('edErr').textContent = 'Preencha nome, data e horário de início.';
+    $('edErr').hidden = false;
+    return;
+  }
+  const startsAt = new Date(`${$('fDate').value}T${$('fStart').value}`);
+  let endsAt = $('fEnd').value ? new Date(`${$('fDate').value}T${$('fEnd').value}`) : null;
+  if (endsAt && endsAt <= startsAt) endsAt.setDate(endsAt.getDate() + 1);
+  const prev = adminEvents.find((x) => x.id === editingId);
+  $('saveBtn').disabled = true;
+  try {
+    await rpc('presence_admin_save_event', {
+      p_id: editingId,
+      p_slug: prev ? prev.slug : makeSlug(title),
+      p_title: title,
+      p_starts_at: startsAt.toISOString(),
+      p_ends_at: endsAt ? endsAt.toISOString() : null,
+      p_location: $('fLoc').value.trim() || null,
+      p_description: $('fDesc').value.trim() || null,
+      p_success_message: $('fMsg').value.trim() || null,
+      p_theme: $('fTheme').value,
+      p_is_open: $('fOpen').checked,
+    });
+    $('editor').hidden = true;
+    toast(editingId ? 'Evento atualizado' : 'Evento criado — já pode copiar o link');
+    adminEvents = await rpc('presence_admin_list', {});
+    renderList();
+  } catch {
+    $('edErr').textContent = 'Não foi possível salvar. Tente de novo.';
+    $('edErr').hidden = false;
+  } finally {
+    $('saveBtn').disabled = false;
+  }
+}
+
+async function toggleOpen(e) {
+  try {
+    await rpc('presence_admin_save_event', {
+      p_id: e.id, p_slug: e.slug, p_title: e.title, p_starts_at: e.starts_at, p_ends_at: e.ends_at, p_location: e.location,
+      p_description: e.description, p_success_message: e.success_message, p_theme: e.theme, p_is_open: !e.is_open,
+    });
+    toast(e.is_open ? 'Inscrições fechadas' : 'Inscrições abertas');
+    adminEvents = await rpc('presence_admin_list', {});
+    renderList();
+  } catch { toast('Não foi possível mudar.'); }
+}
+
+async function deleteEvent(e) {
+  if (!confirm(`Excluir "${e.title}" e as ${e.rsvps.length} confirmação(ões)? O link deixa de funcionar.`)) return;
+  try { await rpc('presence_admin_delete', { p_event_id: e.id, p_rsvp_id: null }); toast('Evento excluído'); adminEvents = await rpc('presence_admin_list', {}); renderList(); }
+  catch { toast('Não foi possível excluir.'); }
+}
+
+async function deleteRsvp(r) {
+  if (!confirm(`Tirar ${r.full_name} (${r.company}) da lista?`)) return;
+  try { await rpc('presence_admin_delete', { p_event_id: null, p_rsvp_id: r.id }); toast('Confirmação excluída'); adminEvents = await rpc('presence_admin_list', {}); renderList(); }
+  catch { toast('Não foi possível excluir.'); }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  $('loginForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    adminCode = $('code').value.trim().toUpperCase();
+    if (!adminCode) return;
+    $('loginErr').hidden = true;
+    $('loginBtn').disabled = true;
+    saveCode(adminCode);
+    await openPanel();
+    $('loginBtn').disabled = false;
+  });
+  $('newBtn').addEventListener('click', () => openEditor(null));
+  $('cancelBtn').addEventListener('click', () => { $('editor').hidden = true; });
+  $('editor').addEventListener('submit', saveEvent);
+  $('outBtn').addEventListener('click', () => { saveCode(''); adminCode = ''; clearInterval(refreshTimer); $('code').value = ''; show('login'); });
+});
+</script>
 <script>
 const SUPABASE_URL = 'https://zpcwiiwhqjppewzxwegg.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Eab1bvYUdYoFDfUj5cBF_g_MAJbDB32';
@@ -133,7 +479,7 @@ function maskPhone(v) {
 }
 
 function show(which) {
-  for (const id of ['loading', 'form', 'done', 'closed']) $(id).hidden = id !== which;
+  for (const id of ['loading', 'form', 'done', 'closed', 'login', 'panel']) $(id).hidden = id !== which;
 }
 
 function stop(title, msg, heading) {
@@ -174,6 +520,8 @@ function showDone(data) {
 }
 
 async function load() {
+  // Sem código de evento no link = área do gestor.
+  if (!slug) { startAdmin(); return; }
   if (!/^[a-z0-9-]{3,80}$/.test(slug)) {
     stop('Link incompleto', 'Abra o link exatamente como recebeu da equipe DAJ.');
     return;
