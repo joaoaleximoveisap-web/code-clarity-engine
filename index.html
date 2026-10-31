@@ -824,10 +824,11 @@ function renderDetail(e) {
         el('button', { type: 'button', class: 'btn line', onclick: () => shareWhats(e) }, 'Enviar no WhatsApp'),
         el('a', { class: 'btn line', href: eventLink(e), target: '_blank', rel: 'noopener' }, 'Ver página'),
         // Editar fica à vista: muda nome, data, horário, endereço e foto sem mudar o link já enviado.
-        el('button', { type: 'button', class: 'btn line', onclick: () => openEditor(e) }, 'Editar evento'))),
+        el('button', { type: 'button', class: 'btn line', onclick: () => openEditor(e) }, 'Editar evento'),
+        // Duplicar: novo evento já preenchido com tudo deste (inclusive a foto); só muda o que for diferente.
+        el('button', { type: 'button', class: 'btn line', onclick: () => openEditor(e, true) }, 'Duplicar evento'))),
     el('div', { class: 'dtools' },
       el('div', { class: 'links' },
-        el('button', { type: 'button', onclick: () => openEditor(e, true) }, 'Duplicar'),
         sKey !== 'cancelado' ? el('button', { type: 'button', onclick: () => toggleOpen(e) }, e.is_open ? 'Encerrar inscrições' : 'Reabrir inscrições') : null,
         n ? el('button', { type: 'button', onclick: () => downloadXlsx(e) }, 'Baixar Excel') : null,
         n ? el('button', { type: 'button', onclick: () => downloadCsv(e) }, 'Baixar CSV') : null),
@@ -957,7 +958,7 @@ function openEditor(e, duplicate) {
   $('editor').hidden = false;
   $('listView').hidden = true; $('listBox').hidden = true; $('detail').hidden = true;
   $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  $('fTitle').focus();
+  $(duplicate ? 'fDate' : 'fTitle').focus(); // na cópia, o normal é trocar a data
 }
 
 // Foto do convite: undefined = não mexeu, null = tirar, texto = foto nova (já reduzida).
