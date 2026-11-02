@@ -298,6 +298,7 @@ td.x button:hover{color:var(--flag)}
       <dt>Data</dt><dd id="date"></dd>
       <dt>Horário</dt><dd id="time"></dd>
       <dt>Endereço</dt><dd id="loc"></dd>
+      <dt id="limDt" hidden>Vagas</dt><dd id="lim" hidden></dd>
     </dl>
     <p class="desc" id="desc" hidden></p>
   </div>
@@ -383,7 +384,8 @@ td.x button:hover{color:var(--flag)}
           <label class="pair"><span>Término</span><input id="fEnd" type="time"></label>
           <label><span>Inscrições</span><select id="fStatus"><option value="aberto">Abertas</option><option value="encerrado">Encerradas</option><option value="cancelado">Evento cancelado</option></select></label>
           <label class="full"><span>Local ou endereço</span><input id="fLoc" maxlength="200" placeholder="Ex.: Stand The One — Gleba Palhano, Londrina"></label>
-          <label><span>Limite de participantes</span><input id="fCap" type="number" min="1" inputmode="numeric" placeholder="Sem limite"></label>
+          <label class="pair"><span>Limite total do evento</span><input id="fCap" type="number" min="1" inputmode="numeric" placeholder="Sem limite"></label>
+          <label class="pair"><span>Limite por imobiliária</span><input id="fCompLim" type="number" min="1" inputmode="numeric" placeholder="Sem limite"></label>
           <label><span>Inscrições até</span><input id="fDeadline" type="datetime-local"></label>
           <label class="half"><span>Visual da página</span><select id="fTheme"><option value="calm">Calm (bege DAJ)</option><option value="claro">Claro</option><option value="escuro">Escuro</option></select></label>
           <label class="half"><span>Descrição</span><textarea id="fDesc" maxlength="2000" placeholder="Aparece abaixo do nome do evento"></textarea></label>
@@ -547,6 +549,9 @@ async function loadGuest() {
   $('date').textContent = fmtLongDate(new Date(event.starts_at));
   $('time').textContent = eventTime(event);
   $('loc').textContent = event.location || 'Endereço a confirmar';
+  const lim = event.company_limit;
+  $('lim').textContent = lim ? `Até ${lim} ${lim === 1 ? 'pessoa' : 'pessoas'} por imobiliária` : '';
+  $('lim').hidden = $('limDt').hidden = !lim;
   $('when').hidden = false;
   $('desc').hidden = !event.description;
   $('desc').textContent = event.description || '';
@@ -602,6 +607,13 @@ $('form').addEventListener('submit', async (e) => {
     }
     if (!r.ok) {
       const t = await r.text();
+      if (t.includes('limite_imobiliaria')) {
+        const lim = event.company_limit;
+        $('err').textContent = `${data.company} já completou ${lim ? `as ${lim} vagas` : 'as vagas'} por imobiliária deste evento. Fale com a equipe DAJ se precisar de mais.`;
+        $('err').hidden = false;
+        $('company').focus();
+        return;
+      }
       throw new Error(t.includes('muitas_inscricoes') ? 'aguarde' : 'falha');
     }
     remember(data);
@@ -889,7 +901,7 @@ function renderDetail(e) {
   box.innerHTML = '';
   table.innerHTML = '';
   const meta = [`${fmtLongDate(start)} · ${eventTime(e)}`, e.location || 'Endereço a confirmar',
-    e.capacity ? `${e.capacity} vagas` : null, e.registration_deadline ? `inscrições até ${fmtStamp(e.registration_deadline)}` : null].filter(Boolean);
+    e.capacity ? `${e.capacity} vagas` : null, e.company_limit ? `até ${e.company_limit} por imobiliária` : null, e.registration_deadline ? `inscrições até ${fmtStamp(e.registration_deadline)}` : null].filter(Boolean);
   box.append(
     el('div', { class: 'dhead' },
       el('div', { class: 'dinfo' },
@@ -1013,6 +1025,7 @@ function openEditor(e, duplicate) {
   $('fEnd').value = e && e.ends_at ? toTimeInput(new Date(e.ends_at)) : '';
   $('fLoc').value = e ? e.location || '' : '';
   $('fCap').value = e && e.capacity ? e.capacity : '';
+  $('fCompLim').value = e && e.company_limit ? e.company_limit : '';
   $('fDeadline').value = e && e.registration_deadline && !duplicate
     ? `${toDateInput(new Date(e.registration_deadline))}T${toTimeInput(new Date(e.registration_deadline))}` : '';
   $('fDesc').value = e ? e.description || '' : '';
@@ -1126,6 +1139,7 @@ async function saveEvent(ev) {
   const endsAt = $('fEnd').value ? new Date(`${$('fDate').value}T${$('fEnd').value}`) : null;
   if (endsAt && endsAt <= startsAt) endsAt.setDate(endsAt.getDate() + 1);
   const cap = parseInt($('fCap').value, 10);
+  const compLim = parseInt($('fCompLim').value, 10);
   const status = $('fStatus').value;
   const prev = adminEvents.find((x) => x.id === editingId);
   // Data que já passou (ex.: ano 2016 no lugar de 2026) não salva: o convidado veria o dia da semana errado.
@@ -1147,6 +1161,8 @@ async function saveEvent(ev) {
       p_is_open: status === 'aberto', p_cancelled: status === 'cancelado',
       p_capacity: cap > 0 ? cap : null,
       p_registration_deadline: $('fDeadline').value ? new Date($('fDeadline').value).toISOString() : null,
+      // Só manda quando há limite (ou para tirar um que existia): assim salvar funciona mesmo antes do SQL novo.
+      ...(compLim > 0 ? { p_company_limit: compLim } : prev && prev.company_limit ? { p_company_limit: 0 } : {}),
     });
     const wasNew = !editingId;
     const savedId = (saved && saved.id) || editingId;
@@ -1172,8 +1188,10 @@ async function saveEvent(ev) {
         navigator.clipboard.writeText(eventLink(lastCreated)).then(() => toast(inviteFailed || 'Evento criado — link copiado'), () => {});
       }
     } else toast(inviteFailed || 'Evento atualizado');
-  } catch {
-    $('edErr').textContent = 'Não foi possível salvar. Tente de novo.';
+  } catch (err) {
+    $('edErr').textContent = err.message === 'sem_banco' && compLim > 0
+      ? 'O limite por imobiliária só salva depois que o SQL novo for rodado no banco. Apague esse campo para salvar o resto.'
+      : 'Não foi possível salvar. Tente de novo.';
     $('edErr').hidden = false;
   } finally {
     $('saveBtn').disabled = false;
