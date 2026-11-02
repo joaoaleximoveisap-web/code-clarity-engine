@@ -165,7 +165,15 @@ label .datebox,label .dateph{font-size:16px;letter-spacing:0;text-transform:none
 .erow.encerrado,.erow.prazo,.erow.lotado{border-left-color:var(--warm)}.erow.cancelado{border-left-color:var(--flag)}
 .erow:hover{border-color:var(--warm)}
 .erow:focus-visible{outline:2px solid var(--warm);outline-offset:2px}
-.erow.past{opacity:.6}
+.erow.past>*{opacity:.6}
+/* Celular: arrastar o cartão para a esquerda mostra Editar e Excluir. */
+.eswipe{position:relative;margin:0 0 10px;border-radius:6px;overflow:hidden}
+.eswipe .erow{margin:0;position:relative;z-index:1;touch-action:pan-y}
+.eacts{position:absolute;top:0;right:0;bottom:0;display:flex;width:168px;visibility:hidden}
+.eswipe.live .eacts{visibility:visible}
+.eacts button{all:unset;flex:1;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#fff;cursor:pointer}
+.eacts .ed{background:var(--warm)}.eacts .ex{background:var(--flag)}
+.swipehint{display:none}
 .ehr{align-self:stretch;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--line);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
 .ename{display:grid;gap:6px;min-width:0}
 .ename b{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:15px;letter-spacing:.03em;line-height:1.45;overflow-wrap:anywhere}
@@ -252,6 +260,7 @@ td.x button:hover{color:var(--flag)}
   .ecount span{font-size:10px;letter-spacing:.1em;margin:0}
   .eday b{font-size:13px}
   .eday .long{display:none}.eday .short{display:inline}
+  .swipehint{display:block;margin:4px 0 0;font-size:13.5px;color:var(--muted)}
   .eday{margin-top:24px}
   .dinfo h2{overflow-wrap:anywhere}
   .dcount b{font-size:34px}
@@ -733,7 +742,7 @@ async function openPanel() {
   clearInterval(refreshTimer);
   // Confirmações novas aparecem sozinhas, só enquanto a aba está aberta e visível.
   refreshTimer = setInterval(() => {
-    if (document.hidden || !$('editor').hidden) return;
+    if (document.hidden || !$('editor').hidden || document.querySelector('.eswipe.live')) return;
     reloadEvents().catch(() => {});
   }, 20000);
 }
@@ -783,6 +792,7 @@ function renderList() {
   const ended = (e) => new Date(e.ends_at || e.starts_at).getTime() + 6 * 3600e3 < now;
   const upcoming = visible.filter((e) => !ended(e));
   const past = visible.filter(ended).reverse();
+  list.append(el('p', { class: 'swipehint' }, 'Dica: arraste um evento para a esquerda para editar ou excluir.'));
   appendDays(list, upcoming, false);
   if (past.length) {
     list.append(el('p', { class: 'group' }, 'Eventos que já passaram'));
@@ -806,7 +816,7 @@ function appendDays(list, events, isPast) {
     }
     n++;
     count.textContent = `${n} ${n === 1 ? 'evento' : 'eventos'}`;
-    list.append(eventRow(e, isPast));
+    list.append(swipeable(e, eventRow(e, isPast)));
   }
 }
 
@@ -820,6 +830,53 @@ function eventRow(e, isPast) {
     el('span', { class: 'ecount' }, el('b', {}, String(n)), el('span', {}, n === 1 ? 'confirmado' : 'confirmados'), e.capacity ? el('small', {}, `de ${e.capacity} vagas`) : null),
     el('span', { class: 'chev', 'aria-hidden': 'true' }, '›'),
   );
+}
+
+// Arrastar com o dedo para a esquerda abre Editar/Excluir; tocar de novo fecha. No computador nada muda.
+function swipeable(e, card) {
+  const W = 168;
+  let x0 = null, dx = 0, base = 0, moved = false;
+  const set = (v, anim) => { card.style.transition = anim ? 'transform .2s ease' : 'none'; card.style.transform = v ? `translateX(${v}px)` : ''; };
+  const close = () => {
+    wrap.classList.remove('open'); set(0, true);
+    setTimeout(() => { if (!wrap.classList.contains('open')) wrap.classList.remove('live'); }, 220);
+  };
+  const wrap = el('div', { class: 'eswipe' },
+    el('div', { class: 'eacts' },
+      el('button', { type: 'button', class: 'ed', onclick: () => { close(); openEditor(e); } }, 'Editar'),
+      el('button', { type: 'button', class: 'ex', onclick: () => { close(); deleteEvent(e); } }, 'Excluir')),
+    card);
+  wrap.closeSwipe = close;
+  card.addEventListener('pointerdown', (ev) => {
+    if (ev.pointerType !== 'touch') return;
+    for (const o of document.querySelectorAll('.eswipe.open')) if (o !== wrap) o.closeSwipe();
+    x0 = ev.clientX; dx = 0; moved = false;
+    base = wrap.classList.contains('open') ? -W : 0;
+  });
+  card.addEventListener('pointermove', (ev) => {
+    if (x0 == null) return;
+    dx = ev.clientX - x0;
+    if (!moved && Math.abs(dx) > 8) { moved = true; wrap.classList.add('live'); try { card.setPointerCapture(ev.pointerId); } catch {} }
+    if (moved) set(Math.min(0, Math.max(-W - 30, base + dx)));
+  });
+  const end = () => {
+    if (x0 == null) return;
+    x0 = null;
+    if (!moved) return;
+    if (base + dx < -W / 2) { wrap.classList.add('open'); set(-W, true); } else close();
+  };
+  card.addEventListener('pointerup', end);
+  card.addEventListener('pointercancel', end);
+  // O toque que terminou um arraste (ou que fecha os botões) não abre o evento.
+  wrap.addEventListener('click', (ev) => {
+    if (!card.contains(ev.target)) return;
+    if (moved || wrap.classList.contains('open')) {
+      ev.stopPropagation(); ev.preventDefault();
+      if (!moved) close();
+      moved = false;
+    }
+  }, true);
+  return wrap;
 }
 
 function renderDetail(e) {
